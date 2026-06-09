@@ -15,9 +15,15 @@ import CandidateResume     from './pages/candidate/CandidateResume';
 import CandidateApplications from './pages/candidate/CandidateApplications';
 import RecruiterDashboard  from './pages/recruiter/RecruiterDashboard';
 import RecruiterJobs       from './pages/recruiter/RecruiterJobs';
+import RecruiterApplicants from './pages/recruiter/RecruiterApplicants';
 import MentorDashboard     from './pages/mentor/MentorDashboard';
 import AdminDashboard      from './pages/admin/AdminDashboard';
 import ComingSoon          from './pages/ComingSoon';
+import Messages            from './pages/Messages';
+import CandidateAssessments from './pages/candidate/CandidateAssessments';
+import CodingAssessment     from './pages/candidate/CodingAssessment';
+import ResumeAnalysis       from './pages/candidate/ResumeAnalysis';
+import Notifications        from './pages/Notifications';
 
 // Auth guard
 import useAuth from './hooks/useAuth';
@@ -52,12 +58,14 @@ const App = () => (
       <Route index element={<CandidateDashboard />} />
       <Route path="profile"      element={<CandidateProfile />} />
       <Route path="resume"       element={<CandidateResume />} />
+      <Route path="resume/:id/analysis" element={<ResumeAnalysis />} />
       <Route path="jobs"         element={<ComingSoon icon={<Search size={32} />}    title="Find Jobs"         description="Browse thousands of curated job openings matched to your skills."      backPath="/candidate" backLabel="Back to Dashboard" />} />
       <Route path="applications" element={<CandidateApplications />} />
-      <Route path="assessments"  element={<ComingSoon icon={<ClipboardList size={32} />} title="Assessments"     description="Complete skill assessments to stand out to employers."                  backPath="/candidate" backLabel="Back to Dashboard" />} />
-      <Route path="messages"     element={<ComingSoon icon={<MessageSquare size={32} />} title="Messages"        description="Communicate with recruiters and your mentors."                          backPath="/candidate" backLabel="Back to Dashboard" />} />
+      <Route path="assessments"  element={<CandidateAssessments />} />
+      <Route path="assessments/coding/:id" element={<CodingAssessment />} />
+      <Route path="messages"     element={<Messages />} />
       <Route path="mentorship"   element={<ComingSoon icon={<BookOpen size={32} />}  title="Mentorship"        description="Find and connect with industry mentors."                                backPath="/candidate" backLabel="Back to Dashboard" />} />
-      <Route path="notifications" element={<ComingSoon icon={<Bell size={32} />}      title="Notifications"     description="View all your recent alerts and updates."                               backPath="/candidate" backLabel="Back to Dashboard" />} />
+      <Route path="notifications" element={<Notifications />} />
       <Route path="settings"     element={<ComingSoon icon={<Settings size={32} />}  title="Settings"          description="Manage your account and notification preferences."                      backPath="/candidate" backLabel="Back to Dashboard" />} />
     </Route>
 
@@ -72,12 +80,13 @@ const App = () => (
     >
       <Route index element={<RecruiterDashboard />} />
       <Route path="jobs"        element={<RecruiterJobs />} />
-      <Route path="applicants"  element={<ComingSoon icon={<Users size={32} />}      title="Applicant Pipeline"description="Review and manage all applicants in your hiring pipeline."              backPath="/recruiter" backLabel="Back to Dashboard" />} />
+      <Route path="applicants"  element={<RecruiterApplicants />} />
       <Route path="interviews"  element={<ComingSoon icon={<Calendar size={32} />}   title="Interviews"        description="Schedule and manage candidate interviews."                              backPath="/recruiter" backLabel="Back to Dashboard" />} />
       <Route path="assessments" element={<ComingSoon icon={<ClipboardList size={32} />} title="Assessments"     description="Manage technical assessments and reviews."                              backPath="/recruiter" backLabel="Back to Dashboard" />} />
-      <Route path="messages"    element={<ComingSoon icon={<MessageSquare size={32} />} title="Messages"        description="Communicate with candidates and your hiring team."                      backPath="/recruiter" backLabel="Back to Dashboard" />} />
+      <Route path="messages"    element={<Messages />} />
       <Route path="analytics"   element={<ComingSoon icon={<BarChart3 size={32} />}   title="Analytics"         description="Deep dive into hiring metrics and funnel."                              backPath="/recruiter" backLabel="Back to Dashboard" />} />
       <Route path="settings"    element={<ComingSoon icon={<Settings size={32} />}   title="Settings"          description="Configure your recruiter account settings."                            backPath="/recruiter" backLabel="Back to Dashboard" />} />
+      <Route path="notifications" element={<Notifications />} />
     </Route>
 
     {/* ---- Mentor Dashboard ---- */}
@@ -93,8 +102,9 @@ const App = () => (
       <Route path="sessions"   element={<ComingSoon icon={<BookOpen size={32} />}    title="Sessions"          description="Manage and schedule your mentoring sessions."                          backPath="/mentor" backLabel="Back to Dashboard" />} />
       <Route path="candidates" element={<ComingSoon icon={<Users size={32} />}       title="My Mentees"        description="Track your mentees' progress and goals."                               backPath="/mentor" backLabel="Back to Dashboard" />} />
       <Route path="reviews"    element={<ComingSoon icon={<BarChart3 size={32} />}   title="Reviews"           description="See feedback from your mentees."                                       backPath="/mentor" backLabel="Back to Dashboard" />} />
-      <Route path="messages"   element={<ComingSoon icon={<FileText size={32} />}    title="Messages"          description="Chat with your mentees."                                               backPath="/mentor" backLabel="Back to Dashboard" />} />
-      <Route path="settings"   element={<ComingSoon icon={<Settings size={32} />}    title="Settings"          description="Manage your mentor profile and preferences."                          backPath="/mentor" backLabel="Back to Dashboard" />} />
+      <Route path="messages"   element={<Messages />} />
+      <Route path="settings"   element={<ComingSoon icon={<Settings size={32} />}    title="Settings"          description="Manage your mentor profile and availability."                          backPath="/mentor" backLabel="Back to Dashboard" />} />
+      <Route path="notifications" element={<Notifications />} />
     </Route>
 
     {/* ---- Admin Dashboard ---- */}

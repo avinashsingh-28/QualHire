@@ -1,5 +1,6 @@
+import { useNavigate } from 'react-router-dom';
 import { 
-  UploadCloud, FileText, CheckCircle, AlertCircle, File, Eye, Download, Trash2, Target, BarChart2
+  UploadCloud, FileText, CheckCircle, AlertCircle, File, Eye, Download, Trash2, Target, BarChart2, Sparkles
 } from 'lucide-react';
 import { StatCard } from '../../components/Card';
 import Button from '../../components/Button';
@@ -23,6 +24,8 @@ const ANALYTICS = {
 };
 
 const CandidateResume = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="dashboard-page">
       {/* Header */}
@@ -140,15 +143,22 @@ const CandidateResume = () => {
             <div className="section-card-body" style={{ padding: '0 var(--space-6) var(--space-4)' }}>
               <div className="resume-history-list">
                 {MOCK_RESUMES.map(res => (
-                  <div key={res.id} className={`resume-history-item ${res.active ? 'active' : ''}`}>
-                    <File size={24} color={res.active ? 'var(--color-primary)' : 'var(--color-text-tertiary)'} />
-                    <div className="resume-history-info">
-                      <p className="resume-history-name">{res.name} {res.active && <span className="badge badge-primary" style={{ fontSize: '10px', marginLeft: 'var(--space-2)' }}>Active</span>}</p>
-                      <p className="resume-history-meta">{res.date} • {res.size}</p>
+                  <div key={res.id} className={`resume-history-item ${res.active ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--color-border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <File size={24} color={res.active ? 'var(--color-primary)' : 'var(--color-text-tertiary)'} />
+                      <div className="resume-history-info">
+                        <p className="resume-history-name" style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{res.name} {res.active && <span className="badge badge-primary" style={{ fontSize: '10px', marginLeft: 'var(--space-2)' }}>Active</span>}</p>
+                        <p className="resume-history-meta" style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{res.date} • {res.size}</p>
+                      </div>
                     </div>
-                    <button className="resume-history-action" title="Delete">
-                      <Trash2 size={16} color="var(--color-text-tertiary)" />
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Button variant="secondary" size="sm" onClick={() => navigate(`/candidate/resume/${res.id}/analysis`)} leftIcon={<Sparkles size={14} color="#8b5cf6" />}>
+                        Analyze with AI
+                      </Button>
+                      <button className="resume-history-action" title="Delete" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                        <Trash2 size={16} color="var(--color-text-tertiary)" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
