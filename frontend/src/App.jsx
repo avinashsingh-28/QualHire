@@ -14,6 +14,7 @@ import CandidateProfile    from './pages/candidate/CandidateProfile';
 import CandidateResume     from './pages/candidate/CandidateResume';
 import CandidateApplications from './pages/candidate/CandidateApplications';
 import RecruiterDashboard  from './pages/recruiter/RecruiterDashboard';
+import RecruiterJobs       from './pages/recruiter/RecruiterJobs';
 import MentorDashboard     from './pages/mentor/MentorDashboard';
 import AdminDashboard      from './pages/admin/AdminDashboard';
 import ComingSoon          from './pages/ComingSoon';
@@ -70,7 +71,7 @@ const App = () => (
       }
     >
       <Route index element={<RecruiterDashboard />} />
-      <Route path="jobs"        element={<ComingSoon icon={<Briefcase size={32} />}  title="Job Postings"      description="Create and manage your job postings."                                   backPath="/recruiter" backLabel="Back to Dashboard" />} />
+      <Route path="jobs"        element={<RecruiterJobs />} />
       <Route path="applicants"  element={<ComingSoon icon={<Users size={32} />}      title="Applicant Pipeline"description="Review and manage all applicants in your hiring pipeline."              backPath="/recruiter" backLabel="Back to Dashboard" />} />
       <Route path="interviews"  element={<ComingSoon icon={<Calendar size={32} />}   title="Interviews"        description="Schedule and manage candidate interviews."                              backPath="/recruiter" backLabel="Back to Dashboard" />} />
       <Route path="assessments" element={<ComingSoon icon={<ClipboardList size={32} />} title="Assessments"     description="Manage technical assessments and reviews."                              backPath="/recruiter" backLabel="Back to Dashboard" />} />
