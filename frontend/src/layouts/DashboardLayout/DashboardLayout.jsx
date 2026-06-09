@@ -26,10 +26,12 @@ const NAV_CONFIG = {
   ],
   recruiter: [
     { label: 'Dashboard',     icon: <LayoutDashboard size={18} />, to: '/recruiter' },
-    { label: 'Job Postings',  icon: <Briefcase size={18} />,       to: '/recruiter/jobs' },
-    { label: 'Candidates',    icon: <Users size={18} />,           to: '/recruiter/candidates', badge: 12 },
+    { label: 'Jobs',          icon: <Briefcase size={18} />,       to: '/recruiter/jobs' },
+    { label: 'Applicants',    icon: <Users size={18} />,           to: '/recruiter/applicants', badge: 12 },
     { label: 'Interviews',    icon: <Calendar size={18} />,        to: '/recruiter/interviews' },
+    { label: 'Assessments',   icon: <ClipboardList size={18} />,   to: '/recruiter/assessments' },
     { label: 'Messages',      icon: <MessageSquare size={18} />,   to: '/recruiter/messages', badge: 2 },
+    { label: 'Analytics',     icon: <BarChart3 size={18} />,       to: '/recruiter/analytics' },
   ],
   mentor: [
     { label: 'Dashboard',     icon: <LayoutDashboard size={18} />, to: '/mentor' },

@@ -12,6 +12,7 @@ import Signup              from './pages/Signup';
 import CandidateDashboard  from './pages/candidate/CandidateDashboard';
 import CandidateProfile    from './pages/candidate/CandidateProfile';
 import CandidateResume     from './pages/candidate/CandidateResume';
+import CandidateApplications from './pages/candidate/CandidateApplications';
 import RecruiterDashboard  from './pages/recruiter/RecruiterDashboard';
 import MentorDashboard     from './pages/mentor/MentorDashboard';
 import AdminDashboard      from './pages/admin/AdminDashboard';
@@ -51,7 +52,7 @@ const App = () => (
       <Route path="profile"      element={<CandidateProfile />} />
       <Route path="resume"       element={<CandidateResume />} />
       <Route path="jobs"         element={<ComingSoon icon={<Search size={32} />}    title="Find Jobs"         description="Browse thousands of curated job openings matched to your skills."      backPath="/candidate" backLabel="Back to Dashboard" />} />
-      <Route path="applications" element={<ComingSoon icon={<Briefcase size={32} />} title="My Applications"   description="Track all your job applications and their current status."             backPath="/candidate" backLabel="Back to Dashboard" />} />
+      <Route path="applications" element={<CandidateApplications />} />
       <Route path="assessments"  element={<ComingSoon icon={<ClipboardList size={32} />} title="Assessments"     description="Complete skill assessments to stand out to employers."                  backPath="/candidate" backLabel="Back to Dashboard" />} />
       <Route path="messages"     element={<ComingSoon icon={<MessageSquare size={32} />} title="Messages"        description="Communicate with recruiters and your mentors."                          backPath="/candidate" backLabel="Back to Dashboard" />} />
       <Route path="mentorship"   element={<ComingSoon icon={<BookOpen size={32} />}  title="Mentorship"        description="Find and connect with industry mentors."                                backPath="/candidate" backLabel="Back to Dashboard" />} />
@@ -70,9 +71,11 @@ const App = () => (
     >
       <Route index element={<RecruiterDashboard />} />
       <Route path="jobs"        element={<ComingSoon icon={<Briefcase size={32} />}  title="Job Postings"      description="Create and manage your job postings."                                   backPath="/recruiter" backLabel="Back to Dashboard" />} />
-      <Route path="candidates"  element={<ComingSoon icon={<Users size={32} />}      title="Candidate Pipeline"description="Review and manage all candidates in your hiring pipeline."              backPath="/recruiter" backLabel="Back to Dashboard" />} />
+      <Route path="applicants"  element={<ComingSoon icon={<Users size={32} />}      title="Applicant Pipeline"description="Review and manage all applicants in your hiring pipeline."              backPath="/recruiter" backLabel="Back to Dashboard" />} />
       <Route path="interviews"  element={<ComingSoon icon={<Calendar size={32} />}   title="Interviews"        description="Schedule and manage candidate interviews."                              backPath="/recruiter" backLabel="Back to Dashboard" />} />
-      <Route path="messages"    element={<ComingSoon icon={<FileText size={32} />}   title="Messages"          description="Communicate with candidates and your hiring team."                      backPath="/recruiter" backLabel="Back to Dashboard" />} />
+      <Route path="assessments" element={<ComingSoon icon={<ClipboardList size={32} />} title="Assessments"     description="Manage technical assessments and reviews."                              backPath="/recruiter" backLabel="Back to Dashboard" />} />
+      <Route path="messages"    element={<ComingSoon icon={<MessageSquare size={32} />} title="Messages"        description="Communicate with candidates and your hiring team."                      backPath="/recruiter" backLabel="Back to Dashboard" />} />
+      <Route path="analytics"   element={<ComingSoon icon={<BarChart3 size={32} />}   title="Analytics"         description="Deep dive into hiring metrics and funnel."                              backPath="/recruiter" backLabel="Back to Dashboard" />} />
       <Route path="settings"    element={<ComingSoon icon={<Settings size={32} />}   title="Settings"          description="Configure your recruiter account settings."                            backPath="/recruiter" backLabel="Back to Dashboard" />} />
     </Route>
 
