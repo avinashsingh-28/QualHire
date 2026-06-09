@@ -1,0 +1,125 @@
+/* ============================================
+   QualHire Animations
+   ============================================ */
+
+/* ---- Keyframes ---- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); max-height: 0; }
+  to   { opacity: 1; transform: translateY(0); max-height: 500px; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes bounceIn {
+  0%   { transform: scale(0.3); opacity: 0; }
+  50%  { transform: scale(1.05); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ---- Animation Utilities ---- */
+.animate-fade-in      { animation: fadeIn var(--transition-slow) ease both; }
+.animate-fade-in-up   { animation: fadeInUp var(--transition-slow) ease both; }
+.animate-fade-in-down { animation: fadeInDown var(--transition-slow) ease both; }
+.animate-scale-in     { animation: scaleIn var(--transition-slow) ease both; }
+.animate-spin         { animation: spin 1s linear infinite; }
+.animate-pulse        { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+.animate-ping         { animation: ping 1s cubic-bezier(0,0,0.2,1) infinite; }
+.animate-float        { animation: float 3s ease-in-out infinite; }
+.animate-bounce-in    { animation: bounceIn 0.5s cubic-bezier(0.36,0.07,0.19,0.97) both; }
+
+/* ---- Delay Utilities ---- */
+.delay-100  { animation-delay: 100ms; }
+.delay-200  { animation-delay: 200ms; }
+.delay-300  { animation-delay: 300ms; }
+.delay-400  { animation-delay: 400ms; }
+.delay-500  { animation-delay: 500ms; }
+
+/* ---- Skeleton Loader ---- */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-3) 25%,
+    var(--color-border-light) 50%,
+    var(--color-surface-3) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+/* ---- Transition Utilities ---- */
+.transition-fast   { transition: all var(--transition-fast); }
+.transition-base   { transition: all var(--transition-base); }
+.transition-slow   { transition: all var(--transition-slow); }
+.transition-spring { transition: all var(--transition-spring); }

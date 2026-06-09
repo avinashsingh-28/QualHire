@@ -1,0 +1,131 @@
+/* ============================================
+   Input Component
+   ============================================ */
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  width: 100%;
+}
+
+.input-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+}
+
+.input-label .required-mark {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+}
+
+.input-field-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-prefix,
+.input-suffix {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input-prefix {
+  left: var(--space-3);
+}
+
+.input-suffix {
+  right: var(--space-3);
+}
+
+.input-prefix ~ .input-field {
+  padding-left: var(--space-9);
+}
+
+.input-field.has-suffix {
+  padding-right: var(--space-9);
+}
+
+.input-field {
+  width: 100%;
+  padding: var(--space-2-5) var(--space-3-5);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-normal);
+  color: var(--color-text-primary);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow   var(--transition-fast),
+    background   var(--transition-fast);
+  outline: none;
+}
+
+.input-field::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.input-field:hover:not(:disabled):not(.input-error) {
+  border-color: var(--color-gray-300);
+}
+
+.input-field:focus:not(.input-error) {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+}
+
+.input-field.input-error {
+  border-color: var(--color-danger);
+}
+
+.input-field.input-error:focus {
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
+}
+
+.input-field:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--color-surface-3);
+}
+
+/* ---- Sizes ---- */
+.input-sm .input-field {
+  padding: var(--space-1-5) var(--space-3);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-md);
+}
+
+.input-lg .input-field {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-base);
+}
+
+/* ---- Helper & Error Text ---- */
+.input-helper,
+.input-error-text {
+  font-size: var(--text-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.input-helper { color: var(--color-text-tertiary); }
+.input-error-text { color: var(--color-danger); }
+
+/* ---- Textarea ---- */
+.input-field.input-textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: var(--leading-relaxed);
+}

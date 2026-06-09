@@ -1,0 +1,75 @@
+/* ============================================
+   EmptyState Component
+   ============================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-16) var(--space-8);
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.empty-state-sm { padding: var(--space-8) var(--space-6); gap: var(--space-3); }
+.empty-state-lg { padding: var(--space-20) var(--space-12); }
+
+.empty-state-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-2xl);
+  background: var(--color-surface-3);
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.empty-state-icon-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 1px dashed var(--color-border);
+}
+
+.empty-state-sm .empty-state-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-xl);
+}
+
+.empty-state-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 380px;
+}
+
+.empty-state-title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.empty-state-sm .empty-state-title { font-size: var(--text-base); }
+
+.empty-state-description {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+.empty-state-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+}
