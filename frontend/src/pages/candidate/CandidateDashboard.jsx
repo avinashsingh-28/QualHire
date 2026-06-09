@@ -1,57 +1,78 @@
 import { useNavigate } from 'react-router-dom';
 import {
-  FileText, Calendar, Search, BookOpen, TrendingUp,
-  MapPin, Clock, Briefcase, Star, ArrowRight, CheckCircle,
-  AlertCircle, Eye
+  FileText, Calendar, Search, BookOpen,
+  Briefcase, Star, ArrowRight, CheckCircle,
+  Eye, Target, ShieldCheck, ClipboardList, Activity
 } from 'lucide-react';
 import { StatCard } from '../../components/Card';
 import Button from '../../components/Button';
-import EmptyState from '../../components/EmptyState';
 import useAuth from '../../hooks/useAuth';
 import './Dashboard.css';
 
+// Recharts
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  BarChart, Bar, Legend
+} from 'recharts';
+
 /* ---- Mock Data ---- */
 const STATS = [
-  { label: 'Applications',   value: '12',  trend: '+3', trendDir: 'up',   trendLabel: 'this week',    icon: <FileText size={20} />,   iconBg: 'rgba(99,102,241,0.12)', iconColor: 'var(--color-primary)' },
-  { label: 'Interviews',     value: '3',   trend: '+1', trendDir: 'up',   trendLabel: 'scheduled',    icon: <Calendar size={20} />,   iconBg: 'rgba(34,197,94,0.12)',  iconColor: 'var(--color-success)' },
-  { label: 'Profile Views',  value: '248', trend: '+42', trendDir: 'up',  trendLabel: 'this week',    icon: <Eye size={20} />,        iconBg: 'rgba(6,182,212,0.12)',  iconColor: 'var(--color-accent)' },
-  { label: 'Saved Jobs',     value: '7',   trend: null, trendDir: 'up',   trendLabel: null,            icon: <Star size={20} />,       iconBg: 'rgba(245,158,11,0.12)', iconColor: 'var(--color-warning)' },
+  { label: 'ATS Score',          value: '88/100', trend: '+5', trendDir: 'up', trendLabel: 'vs last month', icon: <Target size={20} />,        iconBg: 'rgba(212,175,55,0.15)', iconColor: '#b8860b' },
+  { label: 'Applications Sent',  value: '12',     trend: '+3', trendDir: 'up', trendLabel: 'this week',     icon: <FileText size={20} />,      iconBg: 'rgba(99,102,241,0.12)', iconColor: 'var(--color-primary)' },
+  { label: 'Interviews Scheduled',value: '3',     trend: '+1', trendDir: 'up', trendLabel: 'upcoming',      icon: <Calendar size={20} />,      iconBg: 'rgba(34,197,94,0.12)',  iconColor: 'var(--color-success)' },
+  { label: 'Recommended Jobs',   value: '24',     trend: '+8', trendDir: 'up', trendLabel: 'new matches',   icon: <Briefcase size={20} />,     iconBg: 'rgba(6,182,212,0.12)',  iconColor: 'var(--color-accent)' },
+  { label: 'Upcoming Assessments',value: '2',     trend: null, trendDir: 'up', trendLabel: null,            icon: <ClipboardList size={20} />, iconBg: 'rgba(245,158,11,0.12)', iconColor: 'var(--color-warning)' },
 ];
 
 const RECOMMENDED_JOBS = [
-  { id: 1, title: 'Senior Frontend Engineer', company: 'Stripe', location: 'Remote', salary: '$160–200K', type: 'Full-time', logo: 'S',  match: 97 },
-  { id: 2, title: 'Staff React Developer',     company: 'Linear', location: 'SF, CA', salary: '$150–180K', type: 'Full-time', logo: 'L',  match: 93 },
-  { id: 3, title: 'Frontend Architect',        company: 'Figma',  location: 'Remote', salary: '$170–210K', type: 'Full-time', logo: 'F',  match: 89 },
+  { id: 1, title: 'Senior Frontend Engineer', company: 'Stripe', location: 'Remote', salary: '$160–200K', type: 'Full-time', logo: 'S', match: 97 },
+  { id: 2, title: 'Staff React Developer',    company: 'Linear', location: 'SF, CA', salary: '$150–180K', type: 'Full-time', logo: 'L', match: 93 },
+  { id: 3, title: 'Frontend Architect',       company: 'Figma',  location: 'Remote', salary: '$170–210K', type: 'Full-time', logo: 'F', match: 89 },
 ];
 
-const APPLICATIONS = [
-  { id: 1, role: 'Senior Frontend Engineer', company: 'Stripe',  status: 'interview',  date: '2d ago' },
-  { id: 2, role: 'React Developer',           company: 'Notion',  status: 'applied',    date: '5d ago' },
-  { id: 3, role: 'UI Engineer',               company: 'Vercel',  status: 'reviewed',   date: '1w ago' },
-  { id: 4, role: 'Frontend Lead',             company: 'Shopify', status: 'rejected',   date: '2w ago' },
-];
-
-const ACTIVITY = [
+const ACTIVITY_FEED = [
   { icon: <CheckCircle size={16} />, iconBg: 'rgba(34,197,94,0.12)', iconColor: 'var(--color-success)', text: 'Stripe scheduled an interview', time: '2 hours ago' },
-  { icon: <Eye size={16} />,         iconBg: 'rgba(6,182,212,0.12)', iconColor: 'var(--color-accent)',   text: 'Linear viewed your profile',   time: '5 hours ago' },
-  { icon: <FileText size={16} />,    iconBg: 'rgba(99,102,241,0.12)', iconColor: 'var(--color-primary)', text: 'Application sent to Figma',    time: '1 day ago' },
-  { icon: <Star size={16} />,        iconBg: 'rgba(245,158,11,0.12)', iconColor: 'var(--color-warning)', text: 'Saved 2 new job postings',     time: '2 days ago' },
+  { icon: <ShieldCheck size={16} />, iconBg: 'rgba(212,175,55,0.15)',iconColor: '#b8860b',               text: 'Profile passed ATS screening for Linear', time: '5 hours ago' },
+  { icon: <FileText size={16} />,    iconBg: 'rgba(99,102,241,0.12)',iconColor: 'var(--color-primary)', text: 'Application sent to Figma', time: '1 day ago' },
+  { icon: <Activity size={16} />,    iconBg: 'rgba(6,182,212,0.12)', iconColor: 'var(--color-accent)',  text: 'Completed Frontend Skill Assessment', time: '2 days ago' },
 ];
 
-const STATUS_CONFIG = {
-  applied:   { label: 'Applied',    class: 'badge badge-info' },
-  interview: { label: 'Interview',  class: 'badge badge-success' },
-  reviewed:  { label: 'Reviewed',   class: 'badge badge-warning' },
-  rejected:  { label: 'Rejected',   class: 'badge badge-danger' },
-  offered:   { label: 'Offered',    class: 'badge badge-primary' },
+/* ---- Chart Data ---- */
+const APPLICATION_ACTIVITY_DATA = [
+  { name: 'Mon', applications: 2, profileViews: 12 },
+  { name: 'Tue', applications: 3, profileViews: 19 },
+  { name: 'Wed', applications: 1, profileViews: 15 },
+  { name: 'Thu', applications: 4, profileViews: 25 },
+  { name: 'Fri', applications: 2, profileViews: 22 },
+  { name: 'Sat', applications: 0, profileViews: 30 },
+  { name: 'Sun', applications: 0, profileViews: 28 },
+];
+
+const SKILL_GROWTH_DATA = [
+  { subject: 'React', A: 95, fullMark: 100 },
+  { subject: 'Node.js', A: 80, fullMark: 100 },
+  { subject: 'System Design', A: 75, fullMark: 100 },
+  { subject: 'Algorithms', A: 85, fullMark: 100 },
+  { subject: 'CSS/UI', A: 90, fullMark: 100 },
+  { subject: 'Testing', A: 70, fullMark: 100 },
+];
+
+const ASSESSMENT_PERFORMANCE_DATA = [
+  { name: 'React Advanced', score: 92 },
+  { name: 'Data Structures', score: 85 },
+  { name: 'Web Core', score: 95 },
+  { name: 'Sys Design', score: 78 },
+];
+
+/* ---- Custom Tooltip Style for Recharts ---- */
+const customTooltipStyle = {
+  backgroundColor: 'var(--color-surface)',
+  border: '1px solid var(--color-border)',
+  borderRadius: 'var(--radius-lg)',
+  boxShadow: 'var(--shadow-md)',
+  color: 'var(--color-text-primary)'
 };
-
-const QUICK_ACTIONS = [
-  { icon: <Search size={20} />,   iconBg: 'rgba(99,102,241,0.12)', iconColor: 'var(--color-primary)', label: 'Find Jobs',       desc: 'Browse new openings',    to: '/candidate/jobs' },
-  { icon: <BookOpen size={20} />, iconBg: 'rgba(245,158,11,0.12)', iconColor: 'var(--color-warning)', label: 'Book Mentor',     desc: '1:1 coaching session',   to: '/candidate/mentors' },
-  { icon: <FileText size={20} />, iconBg: 'rgba(34,197,94,0.12)',  iconColor: 'var(--color-success)', label: 'My Applications', desc: 'Track your progress',    to: '/candidate/applications' },
-  { icon: <Calendar size={20} />, iconBg: 'rgba(6,182,212,0.12)',  iconColor: 'var(--color-accent)',  label: 'Interviews',      desc: 'Upcoming sessions',      to: '/candidate/interviews' },
-];
 
 const CandidateDashboard = () => {
   const { user } = useAuth();
@@ -67,30 +88,20 @@ const CandidateDashboard = () => {
         <div className="welcome-banner-content">
           <h1 className="welcome-banner-title">{greeting}, {firstName}! 👋</h1>
           <p className="welcome-banner-subtitle">
-            You have 3 interviews this week and 2 new job matches. Keep it up!
+            Your profile is standing out! You have an 88/100 ATS match score for top tier roles.
           </p>
         </div>
         <div className="welcome-banner-actions">
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/candidate/jobs')}
-            leftIcon={<Search size={16} />}
-            id="candidate-find-jobs-btn"
-          >
-            Find Jobs
-          </Button>
-          <Button
-            as="div"
-            variant="ghost"
-            style={{ color: 'rgba(255,255,255,0.85)', borderColor: 'rgba(255,255,255,0.25)', border: '1.5px solid rgba(255,255,255,0.25)', cursor: 'pointer' }}
-            onClick={() => navigate('/candidate/profile')}
-          >
-            Edit Profile
-          </Button>
+          <button className="welcome-btn-primary" style={{ padding: '8px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }} onClick={() => navigate('/candidate/jobs')}>
+            View Recommended Jobs
+          </button>
+          <button className="welcome-btn-secondary" style={{ padding: '8px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }} onClick={() => navigate('/candidate/profile')}>
+            Enhance Profile
+          </button>
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats Widgets */}
       <div className="stats-row">
         {STATS.map(s => (
           <StatCard
@@ -109,12 +120,45 @@ const CandidateDashboard = () => {
 
       {/* Main content grid */}
       <div className="dashboard-grid-3">
-        {/* Left — Recommended + Applications */}
+        {/* Left Column (Charts & Jobs) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+          
+          {/* Chart 1: Application Activity */}
+          <div className="section-card">
+            <div className="section-card-header">
+              <h2 className="section-card-title"><Activity size={18} /> Application Activity</h2>
+            </div>
+            <div className="section-card-body">
+              <div className="chart-container">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={APPLICATION_ACTIVITY_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorApps" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--color-accent)" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="var(--color-accent)" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--color-text-secondary)' }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--color-text-secondary)' }} />
+                    <RechartsTooltip contentStyle={customTooltipStyle} cursor={{ stroke: 'var(--color-border)', strokeWidth: 1 }} />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                    <Area type="monotone" name="Applications" dataKey="applications" stroke="var(--color-primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorApps)" />
+                    <Area type="monotone" name="Profile Views" dataKey="profileViews" stroke="var(--color-accent)" strokeWidth={3} fillOpacity={1} fill="url(#colorViews)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
           {/* Recommended Jobs */}
           <div className="section-card">
             <div className="section-card-header">
-              <h2 className="section-card-title">Recommended for you</h2>
+              <h2 className="section-card-title"><Star size={18} /> Premium Job Matches</h2>
               <Button variant="ghost" size="sm" rightIcon={<ArrowRight size={14} />} onClick={() => navigate('/candidate/jobs')}>
                 View all
               </Button>
@@ -129,106 +173,67 @@ const CandidateDashboard = () => {
                     <div className="job-tags">
                       <span className="job-tag">{job.salary}</span>
                       <span className="job-tag">{job.type}</span>
-                      <span className="badge badge-primary" style={{ fontSize: '10px' }}>
-                        {job.match}% match
-                      </span>
+                      <span className="job-tag match-badge">{job.match}% ATS Match</span>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">Apply</Button>
+                  <Button variant="outline" size="sm" style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>Apply Now</Button>
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Applications Table */}
-          <div className="section-card">
-            <div className="section-card-header">
-              <h2 className="section-card-title">Recent Applications</h2>
-              <Button variant="ghost" size="sm" rightIcon={<ArrowRight size={14} />} onClick={() => navigate('/candidate/applications')}>
-                View all
-              </Button>
-            </div>
-            <div className="data-table-wrapper" style={{ border: 'none', borderRadius: 0 }}>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Position</th>
-                    <th>Company</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {APPLICATIONS.map(app => (
-                    <tr key={app.id}>
-                      <td className="data-table-name">{app.role}</td>
-                      <td>{app.company}</td>
-                      <td><span className={STATUS_CONFIG[app.status].class}>{STATUS_CONFIG[app.status].label}</span></td>
-                      <td>{app.date}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
 
-        {/* Right — Quick Actions + Activity */}
+        {/* Right Column (Skill & Assessment Charts) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-          {/* Profile Completion */}
+          
+          {/* Chart 2: Skill Growth (Radar) */}
           <div className="section-card">
             <div className="section-card-header">
-              <h2 className="section-card-title">Profile Completion</h2>
-              <span className="badge badge-warning">72%</span>
+              <h2 className="section-card-title"><BookOpen size={18} /> Skill Proficiency</h2>
             </div>
             <div className="section-card-body">
-              <div className="progress-bar" style={{ marginBottom: 'var(--space-4)' }}>
-                <div className="progress-bar-fill" style={{ width: '72%' }} />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                {[
-                  { task: 'Add portfolio links', done: false },
-                  { task: 'Upload resume',        done: true  },
-                  { task: 'Add skills',           done: true  },
-                  { task: 'Write about me',       done: false },
-                ].map(({ task, done }) => (
-                  <div key={task} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                    <span style={{ color: done ? 'var(--color-success)' : 'var(--color-text-tertiary)', display: 'flex' }}>
-                      {done ? <CheckCircle size={15} /> : <AlertCircle size={15} />}
-                    </span>
-                    <span style={{ fontSize: 'var(--text-sm)', color: done ? 'var(--color-text-secondary)' : 'var(--color-text-primary)', fontWeight: done ? 'normal' : 'var(--font-medium)', textDecoration: done ? 'line-through' : 'none' }}>{task}</span>
-                  </div>
-                ))}
+              <div className="chart-container" style={{ height: '260px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={SKILL_GROWTH_DATA}>
+                    <PolarGrid stroke="var(--color-border)" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: 'var(--color-text-secondary)' }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                    <RechartsTooltip contentStyle={customTooltipStyle} />
+                    <Radar name="Candidate" dataKey="A" stroke="var(--color-primary)" strokeWidth={2} fill="var(--color-primary)" fillOpacity={0.4} />
+                  </RadarChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
 
-          {/* Quick Actions */}
+          {/* Chart 3: Assessment Performance (Bar) */}
           <div className="section-card">
             <div className="section-card-header">
-              <h2 className="section-card-title">Quick Actions</h2>
+              <h2 className="section-card-title"><ClipboardList size={18} /> Assessment Scores</h2>
             </div>
             <div className="section-card-body">
-              <div className="quick-actions">
-                {QUICK_ACTIONS.map(({ icon, iconBg, iconColor, label, desc, to }) => (
-                  <button key={label} className="quick-action-btn" onClick={() => navigate(to)}>
-                    <div className="quick-action-icon" style={{ background: iconBg, color: iconColor }}>{icon}</div>
-                    <p className="quick-action-label">{label}</p>
-                    <p className="quick-action-desc">{desc}</p>
-                  </button>
-                ))}
+              <div className="chart-container" style={{ height: '220px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={ASSESSMENT_PERFORMANCE_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={30}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--color-text-secondary)' }} />
+                    <YAxis axisLine={false} tickLine={false} domain={[0, 100]} tick={{ fontSize: 12, fill: 'var(--color-text-secondary)' }} />
+                    <RechartsTooltip contentStyle={customTooltipStyle} cursor={{ fill: 'var(--color-surface-2)' }} />
+                    <Bar dataKey="score" fill="var(--color-accent)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
 
-          {/* Activity Feed */}
+          {/* Recent Activity */}
           <div className="section-card">
             <div className="section-card-header">
-              <h2 className="section-card-title">Recent Activity</h2>
+              <h2 className="section-card-title"><Calendar size={18} /> Recent Activity</h2>
             </div>
-            <div className="section-card-body" style={{ padding: '0 var(--space-6) var(--space-4)' }}>
+            <div className="section-card-body">
               <div className="activity-feed">
-                {ACTIVITY.map(({ icon, iconBg, iconColor, text, time }, i) => (
+                {ACTIVITY_FEED.map(({ icon, iconBg, iconColor, text, time }, i) => (
                   <div key={i} className="activity-item">
                     <div className="activity-icon" style={{ background: iconBg, color: iconColor }}>{icon}</div>
                     <div className="activity-content">
@@ -240,6 +245,7 @@ const CandidateDashboard = () => {
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, Link } from 'react-router-dom';
 import {
   LayoutDashboard, Briefcase, FileText, Calendar, Users, Settings,
   Bell, Sun, Moon, ChevronDown, LogOut, User, ChevronLeft, ChevronRight,
-  Menu, Shield, BookOpen, Star, BarChart3, MessageSquare, Search,
+  Menu, Shield, BookOpen, Star, BarChart3, MessageSquare, Search, ClipboardList,
 } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 import useTheme from '../../hooks/useTheme';
@@ -15,10 +15,14 @@ import './DashboardLayout.css';
 const NAV_CONFIG = {
   candidate: [
     { label: 'Dashboard',     icon: <LayoutDashboard size={18} />, to: '/candidate' },
-    { label: 'Find Jobs',     icon: <Search size={18} />,          to: '/candidate/jobs' },
-    { label: 'Applications',  icon: <FileText size={18} />,        to: '/candidate/applications', badge: 3 },
-    { label: 'Interviews',    icon: <Calendar size={18} />,        to: '/candidate/interviews' },
     { label: 'Profile',       icon: <User size={18} />,            to: '/candidate/profile' },
+    { label: 'Resume',        icon: <FileText size={18} />,        to: '/candidate/resume' },
+    { label: 'Jobs',          icon: <Search size={18} />,          to: '/candidate/jobs' },
+    { label: 'Applications',  icon: <Briefcase size={18} />,       to: '/candidate/applications', badge: 3 },
+    { label: 'Assessments',   icon: <ClipboardList size={18} />,   to: '/candidate/assessments' },
+    { label: 'Messages',      icon: <MessageSquare size={18} />,   to: '/candidate/messages', badge: 2 },
+    { label: 'Mentorship',    icon: <BookOpen size={18} />,        to: '/candidate/mentorship' },
+    { label: 'Notifications', icon: <Bell size={18} />,            to: '/candidate/notifications', badge: 5 },
   ],
   recruiter: [
     { label: 'Dashboard',     icon: <LayoutDashboard size={18} />, to: '/recruiter' },

@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Search, FileText, Calendar, Users, Briefcase, BookOpen, BarChart3, Shield, Settings } from 'lucide-react';
+import { Search, FileText, Calendar, Users, Briefcase, BookOpen, BarChart3, Shield, Settings, MessageSquare, Bell, ClipboardList } from 'lucide-react';
 
 // Layouts
 import PublicLayout    from './layouts/PublicLayout';
@@ -10,6 +10,8 @@ import Landing             from './pages/Landing';
 import Login, { ForgotPassword, ResetPassword } from './pages/Login';
 import Signup              from './pages/Signup';
 import CandidateDashboard  from './pages/candidate/CandidateDashboard';
+import CandidateProfile    from './pages/candidate/CandidateProfile';
+import CandidateResume     from './pages/candidate/CandidateResume';
 import RecruiterDashboard  from './pages/recruiter/RecruiterDashboard';
 import MentorDashboard     from './pages/mentor/MentorDashboard';
 import AdminDashboard      from './pages/admin/AdminDashboard';
@@ -46,10 +48,14 @@ const App = () => (
       }
     >
       <Route index element={<CandidateDashboard />} />
+      <Route path="profile"      element={<CandidateProfile />} />
+      <Route path="resume"       element={<CandidateResume />} />
       <Route path="jobs"         element={<ComingSoon icon={<Search size={32} />}    title="Find Jobs"         description="Browse thousands of curated job openings matched to your skills."      backPath="/candidate" backLabel="Back to Dashboard" />} />
-      <Route path="applications" element={<ComingSoon icon={<FileText size={32} />}  title="My Applications"   description="Track all your job applications and their current status."             backPath="/candidate" backLabel="Back to Dashboard" />} />
-      <Route path="interviews"   element={<ComingSoon icon={<Calendar size={32} />}  title="Interviews"        description="View and prepare for your upcoming interviews."                         backPath="/candidate" backLabel="Back to Dashboard" />} />
-      <Route path="profile"      element={<ComingSoon icon={<Users size={32} />}     title="My Profile"        description="Build your standout candidate profile."                                 backPath="/candidate" backLabel="Back to Dashboard" />} />
+      <Route path="applications" element={<ComingSoon icon={<Briefcase size={32} />} title="My Applications"   description="Track all your job applications and their current status."             backPath="/candidate" backLabel="Back to Dashboard" />} />
+      <Route path="assessments"  element={<ComingSoon icon={<ClipboardList size={32} />} title="Assessments"     description="Complete skill assessments to stand out to employers."                  backPath="/candidate" backLabel="Back to Dashboard" />} />
+      <Route path="messages"     element={<ComingSoon icon={<MessageSquare size={32} />} title="Messages"        description="Communicate with recruiters and your mentors."                          backPath="/candidate" backLabel="Back to Dashboard" />} />
+      <Route path="mentorship"   element={<ComingSoon icon={<BookOpen size={32} />}  title="Mentorship"        description="Find and connect with industry mentors."                                backPath="/candidate" backLabel="Back to Dashboard" />} />
+      <Route path="notifications" element={<ComingSoon icon={<Bell size={32} />}      title="Notifications"     description="View all your recent alerts and updates."                               backPath="/candidate" backLabel="Back to Dashboard" />} />
       <Route path="settings"     element={<ComingSoon icon={<Settings size={32} />}  title="Settings"          description="Manage your account and notification preferences."                      backPath="/candidate" backLabel="Back to Dashboard" />} />
     </Route>
 
