@@ -10,7 +10,6 @@ const ROLES = [
   { id: 'candidate', label: 'Job Seeker',  icon: <Briefcase size={18} />, desc: 'Find & apply for roles' },
   { id: 'recruiter', label: 'Recruiter',   icon: <Users size={18} />,     desc: 'Hire top talent' },
   { id: 'mentor',    label: 'Mentor',      icon: <BookOpen size={18} />,  desc: 'Guide candidates' },
-  { id: 'admin',     label: 'Admin',       icon: <Shield size={18} />,    desc: 'Manage platform' },
 ];
 
 const Signup = () => {
@@ -18,7 +17,8 @@ const Signup = () => {
   const { login, isLoading } = useAuth();
   const [role, setRole] = useState('candidate');
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [errors, setErrors] = useState({});
 
   const validate = () => {
@@ -26,6 +26,7 @@ const Signup = () => {
     if (!form.name || form.name.trim().length < 2) errs.name = 'Name must be at least 2 characters';
     if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Valid email is required';
     if (!form.password || form.password.length < 8) errs.password = 'Password must be at least 8 characters';
+    if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match';
     return errs;
   };
 
@@ -157,6 +158,29 @@ const Signup = () => {
                   </span>
                 </div>
               )}
+
+              <Input
+                id="signup-confirm-password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                label="Confirm Password"
+                placeholder="Confirm your password"
+                value={form.confirmPassword}
+                onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                prefixIcon={<Lock size={16} />}
+                suffixIcon={
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(v => !v)}
+                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }}
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                }
+                error={errors.confirmPassword}
+                required
+                autoComplete="new-password"
+              />
             </div>
 
             {errors.general && (

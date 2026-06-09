@@ -3,7 +3,7 @@
  * Replace BASE_URL and implement real fetch logic when backend is ready.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.qualhire.io/v1';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
 class ApiError extends Error {
   constructor(message, status, data) {

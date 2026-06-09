@@ -7,7 +7,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 
 // Pages
 import Landing             from './pages/Landing';
-import Login               from './pages/Login';
+import Login, { ForgotPassword, ResetPassword } from './pages/Login';
 import Signup              from './pages/Signup';
 import CandidateDashboard  from './pages/candidate/CandidateDashboard';
 import RecruiterDashboard  from './pages/recruiter/RecruiterDashboard';
@@ -32,6 +32,8 @@ const App = () => (
       <Route index element={<Landing />} />
       <Route path="login"  element={<Login />} />
       <Route path="signup" element={<Signup />} />
+      <Route path="forgot-password" element={<ForgotPassword />} />
+      <Route path="reset-password"  element={<ResetPassword />} />
     </Route>
 
     {/* ---- Candidate Dashboard ---- */}

@@ -18,7 +18,7 @@ const Login = () => {
   const { login, isLoading } = useAuth();
   const [role, setRole] = useState('candidate');
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '', rememberMe: false });
   const [errors, setErrors] = useState({});
 
   const validate = () => {
@@ -109,7 +109,16 @@ const Login = () => {
                 required
                 autoComplete="current-password"
               />
-              <div className="auth-forgot">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-1)' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={form.rememberMe}
+                    onChange={e => setForm(f => ({ ...f, rememberMe: e.target.checked }))}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>Remember me</span>
+                </label>
                 <Link to="/forgot-password" className="auth-forgot-link">Forgot password?</Link>
               </div>
             </div>
