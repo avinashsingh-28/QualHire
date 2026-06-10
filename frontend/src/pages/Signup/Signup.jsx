@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, User, Eye, EyeOff, Briefcase, Users, BookOpen, Shield, Check } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import Button from '../../components/Button';
@@ -15,8 +15,13 @@ const ROLES = [
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { login, isLoading } = useAuth();
-  const [role, setRole] = useState('candidate');
+  const { signup, isLoading } = useAuth();
+  const [searchParams] = useSearchParams();
+  const queryRole = searchParams.get('role');
+  const [role, setRole] = useState(() => {
+    const validRoles = ['candidate', 'recruiter', 'mentor', 'admin'];
+    return validRoles.includes(queryRole) ? queryRole : 'candidate';
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
@@ -51,10 +56,10 @@ const Signup = () => {
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
     try {
-      await login(form.email, form.password, role);
+      await signup(form.name, form.email, form.password, role);
       navigate(`/${role}`);
-    } catch {
-      setErrors({ general: 'Something went wrong. Please try again.' });
+    } catch (err) {
+      setErrors({ general: err.message || 'Something went wrong. Please try again.' });
     }
   };
 
@@ -67,8 +72,19 @@ const Signup = () => {
       });
       if (!res.ok) throw new Error('Google auth failed');
       const data = await res.json();
-      localStorage.setItem('token', data.token);
+      localStorage.setItem('qh_token', data.token);
       localStorage.setItem('role', role);
+      
+      const googleUser = {
+        id: data.user?.id || `u_${Date.now()}`,
+        name: data.user?.name || 'Google User',
+        email: data.user?.email || 'google@example.com',
+        role: role,
+        avatar: data.user?.picture || null,
+        title: role === 'candidate' ? 'Software Engineer' : role === 'recruiter' ? 'Recruiter' : 'Mentor',
+        location: 'Remote'
+      };
+      localStorage.setItem('qh_user', JSON.stringify(googleUser));
       window.location.href = `/${role}`;
     } catch (err) {
       console.error(err);

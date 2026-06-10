@@ -29,9 +29,9 @@ const Navbar = () => {
   const getDashboardPath = () => `/${role || 'candidate'}`;
 
   const navLinks = [
-    { label: 'For Candidates', to: '/candidate' },
-    { label: 'For Recruiters', to: '/recruiter' },
-    { label: 'For Mentors', to: '/mentor' },
+    { label: 'For Candidates', to: '/for-candidates' },
+    { label: 'For Recruiters', to: '/for-recruiters' },
+    { label: 'For Mentors', to: '/for-mentors' },
     { label: 'Pricing', to: '/#pricing' },
     { label: 'About', to: '/#about' },
   ];

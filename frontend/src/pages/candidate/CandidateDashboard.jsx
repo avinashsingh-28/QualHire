@@ -81,6 +81,39 @@ const CandidateDashboard = () => {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
+  // Read resumes list from localStorage
+  const userResumesKey = `qh_resumes_${user?.id}`;
+  const resumes = JSON.parse(localStorage.getItem(userResumesKey) || '[]');
+  const hasUploadedResume = resumes.length > 0;
+  
+  const activeResume = resumes.find(r => r.active) || resumes[0];
+  const atsScoreValue = activeResume?.analysis?.atsScore || activeResume?.atsScore || null;
+
+  const atsScoreDisplay = atsScoreValue ? `${atsScoreValue}/100` : 'N/A';
+  const atsTrend = atsScoreValue ? '+5' : null;
+  const atsTrendLabel = atsScoreValue ? 'vs last month' : 'No active resume';
+
+  const appsCount = hasUploadedResume ? (activeResume.id === 1 ? '12' : '1') : '0';
+  const interviewsCount = hasUploadedResume ? (activeResume.id === 1 ? '3' : '0') : '0';
+  const assessmentsCount = hasUploadedResume ? (activeResume.id === 1 ? '2' : '0') : '0';
+
+  const stats = [
+    { label: 'ATS Score',          value: atsScoreDisplay, trend: atsTrend, trendDir: 'up', trendLabel: atsTrendLabel, icon: <Target size={20} />,        iconBg: 'rgba(212,175,55,0.15)', iconColor: '#b8860b' },
+    { label: 'Applications Sent',  value: appsCount,        trend: hasUploadedResume && activeResume.id === 1 ? '+3' : null, trendDir: 'up', trendLabel: 'this week',     icon: <FileText size={20} />,      iconBg: 'rgba(99,102,241,0.12)', iconColor: 'var(--color-primary)' },
+    { label: 'Interviews Scheduled',value: interviewsCount,  trend: hasUploadedResume && activeResume.id === 1 ? '+1' : null, trendDir: 'up', trendLabel: 'upcoming',      icon: <Calendar size={20} />,      iconBg: 'rgba(34,197,94,0.12)',  iconColor: 'var(--color-success)' },
+    { label: 'Recommended Jobs',   value: '24',     trend: '+8', trendDir: 'up', trendLabel: 'new matches',   icon: <Briefcase size={20} />,     iconBg: 'rgba(6,182,212,0.12)',  iconColor: 'var(--color-accent)' },
+    { label: 'Upcoming Assessments',value: assessmentsCount, trend: null, trendDir: 'up', trendLabel: null,            icon: <ClipboardList size={20} />, iconBg: 'rgba(245,158,11,0.12)', iconColor: 'var(--color-warning)' },
+  ];
+
+  const activityFeed = hasUploadedResume 
+    ? (activeResume.id === 1 
+        ? ACTIVITY_FEED 
+        : [
+            { icon: <CheckCircle size={16} />, iconBg: 'rgba(34,197,94,0.12)', iconColor: 'var(--color-success)', text: 'Resume uploaded successfully', time: 'Just now' }
+          ]
+      )
+    : [];
+
   return (
     <div className="dashboard-page">
       {/* Welcome Banner */}
@@ -88,7 +121,9 @@ const CandidateDashboard = () => {
         <div className="welcome-banner-content">
           <h1 className="welcome-banner-title">{greeting}, {firstName}! 👋</h1>
           <p className="welcome-banner-subtitle">
-            Your profile is standing out! You have an 88/100 ATS match score for top tier roles.
+            {atsScoreValue 
+              ? `Your profile is standing out! You have an ${atsScoreValue}/100 ATS match score for top tier roles.`
+              : "Unlock personalized job recommendations and ATS analytics by uploading your resume."}
           </p>
         </div>
         <div className="welcome-banner-actions">
@@ -101,9 +136,50 @@ const CandidateDashboard = () => {
         </div>
       </div>
 
+      {/* Upload Resume CTA Banner */}
+      {!hasUploadedResume && (
+        <div className="section-card upload-resume-prompt-banner" style={{
+          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%)',
+          border: '2px dashed var(--color-primary-light)',
+          borderRadius: '16px',
+          padding: '32px 24px',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '16px',
+          margin: 'var(--space-2) 0 var(--space-2)'
+        }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: 'var(--color-primary-lightest)',
+            color: 'var(--color-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: 'var(--shadow-sm)'
+          }}>
+            <FileText size={28} />
+          </div>
+          <div style={{ maxWidth: '520px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '8px' }}>
+              Upload Your Resume to Unlock AI Matching
+            </h2>
+            <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', lineHeight: '1.5' }}>
+              We use advanced ATS matching models to scan your experience and skills, generate scorecards, suggest critical keyword fixes, and match you with target open positions.
+            </p>
+          </div>
+          <Button variant="primary" style={{ background: 'var(--gradient-primary)', border: 'none' }} onClick={() => navigate('/candidate/resume')}>
+            Upload Resume Now
+          </Button>
+        </div>
+      )}
+
       {/* Stats Widgets */}
       <div className="stats-row">
-        {STATS.map(s => (
+        {stats.map(s => (
           <StatCard
             key={s.label}
             label={s.label}
@@ -233,15 +309,21 @@ const CandidateDashboard = () => {
             </div>
             <div className="section-card-body">
               <div className="activity-feed">
-                {ACTIVITY_FEED.map(({ icon, iconBg, iconColor, text, time }, i) => (
-                  <div key={i} className="activity-item">
-                    <div className="activity-icon" style={{ background: iconBg, color: iconColor }}>{icon}</div>
-                    <div className="activity-content">
-                      <p className="activity-text">{text}</p>
-                      <p className="activity-time">{time}</p>
+                {activityFeed.length > 0 ? (
+                  activityFeed.map(({ icon, iconBg, iconColor, text, time }, i) => (
+                    <div key={i} className="activity-item">
+                      <div className="activity-icon" style={{ background: iconBg, color: iconColor }}>{icon}</div>
+                      <div className="activity-content">
+                        <p className="activity-text">{text}</p>
+                        <p className="activity-time">{time}</p>
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '24px', color: 'var(--color-text-secondary)', fontStyle: 'italic', fontSize: '13px' }}>
+                    No recent activity. Upload a resume to get started.
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
