@@ -134,22 +134,22 @@ const Landing = () => {
         <div className="hero-bg-grid" aria-hidden="true" />
 
         <div className="hero-container">
-          <div className="hero-content">
-            <div className="hero-badge">
-              <span className="hero-badge-dot" />
+          <div className="hero-content animate-fade-in-up">
+            <div className="hero-badge animate-fade-in-up delay-100">
+              <span className="hero-badge-dot animate-pulse" />
               <span>Next-Gen Hiring Ecosystem</span>
             </div>
 
-            <h1 className="hero-title">
+            <h1 className="hero-title animate-fade-in-up delay-200">
               AI-Powered Recruitment &{' '}
               <span className="gradient-word">Talent Management</span> Platform
             </h1>
 
-            <p className="hero-subtitle">
+            <p className="hero-subtitle animate-fade-in-up delay-300">
               QualHire bridges the gap between top talent, high-growth recruiters, and expert mentors with pre-verified skills and smart matching.
             </p>
 
-            <div className="hero-actions">
+            <div className="hero-actions animate-fade-in-up delay-400">
               <Button
                 variant="primary"
                 size="xl"
@@ -170,7 +170,7 @@ const Landing = () => {
               </Button>
             </div>
 
-            <div className="hero-trust">
+            <div className="hero-trust animate-fade-in-up delay-500">
               <div className="avatar-group">
                 {['JD', 'AM', 'KL', 'PH', 'ST'].map((initials, idx) => (
                   <span key={idx} className="avatar-bubble" style={{ zIndex: 5 - idx }}>{initials}</span>
@@ -181,7 +181,7 @@ const Landing = () => {
           </div>
 
           {/* Interactive UI Mockup Visual */}
-          <div className="hero-visual">
+          <div className="hero-visual animate-scale-in delay-300">
             <div className="mockup-frame">
               <div className="mockup-header">
                 <span className="dot dot-red" />

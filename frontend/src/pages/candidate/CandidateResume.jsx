@@ -167,19 +167,34 @@ const CandidateResume = () => {
   };
 
   const addResume = (file) => {
-    const newResume = {
-      id: Date.now(),
-      name: file.name,
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-      active: resumes.length === 0, // set active if it's the first one
-      atsScore: null,
-      analysis: null
-    };
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const fileUrl = e.target.result;
+      const newResume = {
+        id: Date.now(),
+        name: file.name,
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+        size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+        active: resumes.length === 0, // set active if it's the first one
+        atsScore: null,
+        analysis: null,
+        fileUrl: fileUrl
+      };
 
-    const updated = [...resumes, newResume];
-    setResumes(updated);
-    localStorage.setItem(userResumesKey, JSON.stringify(updated));
+      try {
+        const updated = [...resumes, newResume];
+        setResumes(updated);
+        localStorage.setItem(userResumesKey, JSON.stringify(updated));
+      } catch (err) {
+        console.warn("Storage quota exceeded, storing metadata only.", err);
+        const simplifiedResume = { ...newResume, fileUrl: null };
+        const updated = [...resumes, simplifiedResume];
+        setResumes(updated);
+        localStorage.setItem(userResumesKey, JSON.stringify(updated));
+        alert("Upload successful! Stored file details, but preview is disabled due to space limits.");
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSetActive = (id) => {
@@ -324,63 +339,75 @@ const CandidateResume = () => {
                       <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>{activeResume.name}</span>
                       <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginLeft: 'auto' }}>{activeResume.size}</span>
                     </div>
-                    <div className="resume-preview-mock" style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
-                      <div className="resume-mock-header">
-                        <h2>{profileData?.personal?.name?.toUpperCase() || user?.name?.toUpperCase() || 'YOUR NAME'}</h2>
-                        <p>
-                          {profileData?.personal?.title || user?.title || 'Title'} | {profileData?.personal?.location || 'Location'} | {profileData?.personal?.email || user?.email}
-                          {profileData?.personal?.phone && ` | ${profileData.personal.phone}`}
-                        </p>
+                    {activeResume.fileUrl ? (
+                      <div className="resume-preview-mock" style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, padding: 0, height: '480px' }}>
+                        <iframe 
+                          src={activeResume.fileUrl} 
+                          width="100%" 
+                          height="100%" 
+                          title="PDF Resume Preview" 
+                          style={{ border: 'none' }} 
+                        />
                       </div>
-                      <div className="resume-mock-body">
-                        {profileData?.personal?.summary ? (
-                          <>
-                            <h3>PROFESSIONAL SUMMARY</h3>
-                            <p style={{ fontSize: '13px', lineHeight: '1.5', color: 'var(--color-text-secondary)' }}>{profileData.personal.summary}</p>
-                          </>
-                        ) : (
-                          <div style={{ padding: '8px 0', borderBottom: '1px solid var(--color-border)', marginBottom: '16px' }}>
-                            <p style={{ fontStyle: 'italic', fontSize: '13px', color: 'var(--color-text-secondary)' }}>No summary added yet. Edit your profile to fill details.</p>
-                          </div>
-                        )}
-
-                        <h3>EXPERIENCE</h3>
-                        {profileData?.experience && profileData.experience.length > 0 ? (
-                          profileData.experience.map(exp => (
-                            <div key={exp.id} style={{ marginBottom: '16px' }}>
-                              <h4 style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--color-text-primary)' }}>{exp.role} — {exp.company}</h4>
-                              <p style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>{exp.duration}</p>
-                              <p style={{ fontSize: '13px', lineHeight: '1.5', color: 'var(--color-text-secondary)' }}>{exp.description}</p>
+                    ) : (
+                      <div className="resume-preview-mock" style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
+                        <div className="resume-mock-header">
+                          <h2>{profileData?.personal?.name?.toUpperCase() || user?.name?.toUpperCase() || 'YOUR NAME'}</h2>
+                          <p>
+                            {profileData?.personal?.title || user?.title || 'Title'} | {profileData?.personal?.location || 'Location'} | {profileData?.personal?.email || user?.email}
+                            {profileData?.personal?.phone && ` | ${profileData.personal.phone}`}
+                          </p>
+                        </div>
+                        <div className="resume-mock-body">
+                          {profileData?.personal?.summary ? (
+                            <>
+                              <h3>PROFESSIONAL SUMMARY</h3>
+                              <p style={{ fontSize: '13px', lineHeight: '1.5', color: 'var(--color-text-secondary)' }}>{profileData.personal.summary}</p>
+                            </>
+                          ) : (
+                            <div style={{ padding: '8px 0', borderBottom: '1px solid var(--color-border)', marginBottom: '16px' }}>
+                              <p style={{ fontStyle: 'italic', fontSize: '13px', color: 'var(--color-text-secondary)' }}>No summary added yet. Edit your profile to fill details.</p>
                             </div>
-                          ))
-                        ) : (
-                          <div style={{ marginBottom: '16px' }}>
-                            <p style={{ fontStyle: 'italic', fontSize: '13px', color: 'var(--color-text-secondary)' }}>No experience listed. Edit your profile to add experience details.</p>
-                          </div>
-                        )}
+                          )}
 
-                        <h3>EDUCATION</h3>
-                        {profileData?.education && profileData.education.length > 0 ? (
-                          profileData.education.map(edu => (
-                            <div key={edu.id} style={{ marginBottom: '12px' }}>
-                              <h4 style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--color-text-primary)' }}>{edu.degree}</h4>
-                              <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{edu.school} ({edu.year})</p>
+                          <h3>EXPERIENCE</h3>
+                          {profileData?.experience && profileData.experience.length > 0 ? (
+                            profileData.experience.map(exp => (
+                              <div key={exp.id} style={{ marginBottom: '16px' }}>
+                                <h4 style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--color-text-primary)' }}>{exp.role} — {exp.company}</h4>
+                                <p style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>{exp.duration}</p>
+                                <p style={{ fontSize: '13px', lineHeight: '1.5', color: 'var(--color-text-secondary)' }}>{exp.description}</p>
+                              </div>
+                            ))
+                          ) : (
+                            <div style={{ marginBottom: '16px' }}>
+                              <p style={{ fontStyle: 'italic', fontSize: '13px', color: 'var(--color-text-secondary)' }}>No experience listed. Edit your profile to add experience details.</p>
                             </div>
-                          ))
-                        ) : (
-                          <div style={{ marginBottom: '16px' }}>
-                            <p style={{ fontStyle: 'italic', fontSize: '13px', color: 'var(--color-text-secondary)' }}>No education listed. Edit your profile to add school details.</p>
-                          </div>
-                        )}
-                        
-                        {profileData?.skills?.core && profileData.skills.core.length > 0 && (
-                          <>
-                            <h3>SKILLS</h3>
-                            <p style={{ fontSize: '13px', lineHeight: '1.5', color: 'var(--color-text-secondary)' }}>{profileData.skills.core.join(', ')}</p>
-                          </>
-                        )}
+                          )}
+
+                          <h3>EDUCATION</h3>
+                          {profileData?.education && profileData.education.length > 0 ? (
+                            profileData.education.map(edu => (
+                              <div key={edu.id} style={{ marginBottom: '12px' }}>
+                                <h4 style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--color-text-primary)' }}>{edu.degree}</h4>
+                                <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{edu.school} ({edu.year})</p>
+                              </div>
+                            ))
+                          ) : (
+                            <div style={{ marginBottom: '16px' }}>
+                              <p style={{ fontStyle: 'italic', fontSize: '13px', color: 'var(--color-text-secondary)' }}>No education listed. Edit your profile to add school details.</p>
+                            </div>
+                          )}
+                          
+                          {profileData?.skills?.core && profileData.skills.core.length > 0 && (
+                            <>
+                              <h3>SKILLS</h3>
+                              <p style={{ fontSize: '13px', lineHeight: '1.5', color: 'var(--color-text-secondary)' }}>{profileData.skills.core.join(', ')}</p>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 ) : (
                   <div style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--color-text-secondary)' }}>

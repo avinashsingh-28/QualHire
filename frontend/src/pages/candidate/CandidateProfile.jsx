@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   User, Briefcase, GraduationCap, Award, Link as LinkIcon, 
   MapPin, Mail, Phone, Code, Globe, ExternalLink,
-  Edit3, Trash2, Plus
+  Edit3, Trash2, Plus, CheckCircle
 } from 'lucide-react';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
@@ -38,6 +38,23 @@ const BLANK_PROFILE = {
 const CandidateProfile = () => {
   const { user, updateUser } = useAuth();
   const userProfileKey = `qh_profile_${user?.id}`;
+
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const handleShareProfile = () => {
+    const profileUrl = `${window.location.origin}/candidate/profile?id=${user?.id}`;
+    navigator.clipboard.writeText(profileUrl)
+      .then(() => {
+        setToastMessage('Profile link copied to clipboard!');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+      })
+      .catch((err) => {
+        console.error('Could not copy text: ', err);
+        alert(`Profile Link: ${profileUrl}`);
+      });
+  };
 
   const [profileData, setProfileData] = useState(() => {
     try {
@@ -383,7 +400,7 @@ const CandidateProfile = () => {
         </div>
         <div className="profile-banner-actions">
           <Button variant="secondary" leftIcon={<Edit3 size={16} />} onClick={handleEditPersonal}>Edit Profile</Button>
-          <Button>Share Profile</Button>
+          <Button onClick={handleShareProfile}>Share Profile</Button>
         </div>
       </div>
 
@@ -908,6 +925,29 @@ const CandidateProfile = () => {
           </div>
         </form>
       </Modal>
+
+      {showToast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          background: 'var(--color-success)',
+          color: '#fff',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          boxShadow: 'var(--shadow-lg)',
+          zIndex: 1000,
+          fontWeight: 'var(--font-semibold)',
+          fontSize: 'var(--text-sm)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          animation: 'fadeInUp 0.3s ease-out'
+        }}>
+          <CheckCircle size={16} />
+          {toastMessage}
+        </div>
+      )}
     </div>
   );
 };
