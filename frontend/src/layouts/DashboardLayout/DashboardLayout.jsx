@@ -253,6 +253,8 @@ const ProfileDropdown = () => {
 /* ---- Dashboard Header ---- */
 const DashboardHeader = ({ collapsed, setCollapsed, onMobileOpen }) => {
   const { toggle, isDark } = useTheme();
+  const { role } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <header className="dashboard-header">
@@ -296,6 +298,7 @@ const DashboardHeader = ({ collapsed, setCollapsed, onMobileOpen }) => {
           className="header-icon-btn"
           aria-label="Notifications (5 unread)"
           id="notifications-btn"
+          onClick={() => navigate(`/${role}/notifications`)}
         >
           <NotificationBadge count={5} ping>
             <Bell size={18} />

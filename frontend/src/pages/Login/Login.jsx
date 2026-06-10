@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Briefcase, Users, BookOpen, Shield } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import Button from '../../components/Button';
@@ -17,7 +17,12 @@ const ROLES = [
 const Login = () => {
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
-  const [role, setRole] = useState('candidate');
+  const [searchParams] = useSearchParams();
+  const queryRole = searchParams.get('role');
+  const [role, setRole] = useState(() => {
+    const validRoles = ['candidate', 'recruiter', 'mentor', 'admin'];
+    return validRoles.includes(queryRole) ? queryRole : 'candidate';
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: '', password: '', rememberMe: false });
   const [errors, setErrors] = useState({});
@@ -51,9 +56,20 @@ const Login = () => {
       });
       if (!res.ok) throw new Error('Google auth failed');
       const data = await res.json();
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('role', 'candidate');
-      window.location.href = '/candidate';
+      localStorage.setItem('qh_token', data.token);
+      localStorage.setItem('role', role);
+      
+      const googleUser = {
+        id: data.user?.id || `u_${Date.now()}`,
+        name: data.user?.name || 'Google User',
+        email: data.user?.email || 'google@example.com',
+        role: role,
+        avatar: data.user?.picture || null,
+        title: role === 'candidate' ? 'Software Engineer' : role === 'recruiter' ? 'Recruiter' : 'Mentor',
+        location: 'Remote'
+      };
+      localStorage.setItem('qh_user', JSON.stringify(googleUser));
+      window.location.href = `/${role}`;
     } catch (err) {
       console.error(err);
       setErrors({ general: 'Google sign-in failed. Please try again.' });

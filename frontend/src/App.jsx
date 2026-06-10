@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Search, FileText, Calendar, Users, Briefcase, BookOpen, BarChart3, Shield, Settings, MessageSquare, Bell, ClipboardList } from 'lucide-react';
 
@@ -6,7 +7,7 @@ import PublicLayout    from './layouts/PublicLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 
 // Pages
-import Landing             from './pages/Landing';
+import { Landing, RoleLanding } from './pages/Landing';
 import Login, { ForgotPassword, ResetPassword } from './pages/Login';
 import Signup              from './pages/Signup';
 import CandidateDashboard  from './pages/candidate/CandidateDashboard';
@@ -29,9 +30,22 @@ import Notifications        from './pages/Notifications';
 import useAuth from './hooks/useAuth';
 
 const ProtectedRoute = ({ children, allowedRole }) => {
-  const { isAuthenticated, role } = useAuth();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (allowedRole && role !== allowedRole) return <Navigate to={`/${role}`} replace />;
+  const { isAuthenticated, role, logout } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated && allowedRole && role !== allowedRole) {
+      logout();
+    }
+  }, [isAuthenticated, allowedRole, role, logout]);
+
+  if (!isAuthenticated) {
+    return <Navigate to={`/login?role=${allowedRole || 'candidate'}`} replace />;
+  }
+
+  if (allowedRole && role !== allowedRole) {
+    return null;
+  }
+
   return children;
 };
 
@@ -40,6 +54,10 @@ const App = () => (
     {/* ---- Public ---- */}
     <Route element={<PublicLayout />}>
       <Route index element={<Landing />} />
+      <Route path="for-candidates" element={<RoleLanding role="candidate" />} />
+      <Route path="for-recruiters" element={<RoleLanding role="recruiter" />} />
+      <Route path="for-mentors"    element={<RoleLanding role="mentor" />} />
+      <Route path="for-admins"     element={<RoleLanding role="admin" />} />
       <Route path="login"  element={<Login />} />
       <Route path="signup" element={<Signup />} />
       <Route path="forgot-password" element={<ForgotPassword />} />

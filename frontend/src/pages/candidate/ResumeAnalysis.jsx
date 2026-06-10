@@ -5,6 +5,7 @@ import {
   FileText, CheckCircle, AlertTriangle, TrendingUp, XCircle 
 } from 'lucide-react';
 import Button from '../../components/Button';
+import useAuth from '../../hooks/useAuth';
 import './Dashboard.css';
 
 const MOCK_ANALYSIS = {
@@ -66,32 +67,71 @@ const CircularProgress = ({ value, color, size = 120, strokeWidth = 10 }) => {
 const ResumeAnalysis = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [analysis, setAnalysis] = useState(MOCK_ANALYSIS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const userResumesKey = `qh_resumes_${user?.id}`;
 
   useEffect(() => {
     const fetchAnalysis = async () => {
       try {
         setLoading(true);
-        // Replace with actual resume extraction logic eventually
-        const sampleResume = `
-          Alex Johnson
-          Senior Frontend Engineer
-          alex.johnson@example.com
-          
-          Experience:
-          Senior Frontend Engineer at TechCorp Solutions (2020 - Present)
-          - Led frontend architecture for SaaS platform.
-          - Improved load time by 40%.
-          
-          Skills: React, TypeScript, Node.js
-        `;
+
+        const resumes = JSON.parse(localStorage.getItem(userResumesKey) || '[]');
+        const currentResume = resumes.find(r => r.id === parseInt(id)) || resumes.find(r => r.id === id);
+
+        if (!currentResume) {
+          throw new Error('Resume not found');
+        }
+
+        // Generate dynamic resume text based on user's current profile or default
+        const savedProfile = localStorage.getItem(`qh_profile_${user?.id}`);
+        const profile = savedProfile ? JSON.parse(savedProfile) : null;
+        
+        let resumeText = '';
+        if (profile) {
+          resumeText = `
+            ${profile.personal.name}
+            ${profile.personal.title}
+            ${profile.personal.email} | ${profile.personal.phone} | ${profile.personal.location}
+            
+            Professional Summary:
+            ${profile.personal.summary}
+            
+            Skills:
+            Core: ${profile.skills.core.join(', ')}
+            UI: ${profile.skills.ui.join(', ')}
+            Tools: ${profile.skills.tools.join(', ')}
+            
+            Experience:
+            ${profile.experience.map(e => `${e.role} at ${e.company} (${e.duration})\n${e.description}`).join('\n\n')}
+            
+            Education:
+            ${profile.education.map(edu => `${edu.degree} at ${edu.school} (${edu.year})`).join('\n\n')}
+          `;
+        } else {
+          resumeText = `
+            ${user?.name || 'Candidate Name'}
+            ${user?.title || 'Software Engineer'}
+            ${user?.email || 'candidate@example.com'}
+            
+            Experience:
+            Software Engineer at Tech Solutions (2022 - Present)
+            - Developed frontend systems using React and TypeScript.
+            - Enhanced site loading speed and layout structure.
+            
+            Skills: React, TypeScript, JavaScript, HTML, CSS, Git
+          `;
+        }
+
+        const targetRole = user?.title || 'Senior Frontend Engineer';
         
         const response = await fetch('http://localhost:8080/api/resume/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ resumeText: sampleResume, targetRole: 'Senior Frontend Engineer' })
+          body: JSON.stringify({ resumeText, targetRole })
         });
 
         if (!response.ok) {
@@ -99,20 +139,60 @@ const ResumeAnalysis = () => {
         }
 
         const data = await response.json();
-        // Assume API returns exactly the format we need, but maybe keep resumeName
-        data.resumeName = MOCK_ANALYSIS.resumeName;
+        data.resumeName = currentResume.name;
+
+        // Save the analysis and atsScore back into the resume in localStorage
+        const updatedResumes = resumes.map(r => {
+          if (r.id === currentResume.id) {
+            return {
+              ...r,
+              atsScore: data.atsScore,
+              analysis: data
+            };
+          }
+          return r;
+        });
+        localStorage.setItem(userResumesKey, JSON.stringify(updatedResumes));
+
         setAnalysis(data);
       } catch (err) {
         console.error("Error fetching analysis:", err);
         setError("Could not generate AI analysis. Using cached data.");
-        setAnalysis(MOCK_ANALYSIS); // Fallback
+        
+        // Update local resume with mock fallback details for demo purposes
+        try {
+          const resumes = JSON.parse(localStorage.getItem(userResumesKey) || '[]');
+          const currentResume = resumes.find(r => r.id === parseInt(id)) || resumes.find(r => r.id === id);
+          if (currentResume) {
+            const simulated = {
+              ...MOCK_ANALYSIS,
+              resumeName: currentResume.name
+            };
+            const updatedResumes = resumes.map(r => {
+              if (r.id === currentResume.id) {
+                return {
+                  ...r,
+                  atsScore: simulated.atsScore,
+                  analysis: simulated
+                };
+              }
+              return r;
+            });
+            localStorage.setItem(userResumesKey, JSON.stringify(updatedResumes));
+            setAnalysis(simulated);
+          }
+        } catch (e) {
+          console.error(e);
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAnalysis();
-  }, [id]);
+    if (user) {
+      fetchAnalysis();
+    }
+  }, [id, user]);
 
   if (loading) {
     return (

@@ -479,3 +479,34 @@
   .welcome-banner { flex-direction: column; align-items: flex-start; }
   .stats-row { grid-template-columns: 1fr; }
 }
+
+/* ---- Empty Placeholder Card ---- */
+.empty-placeholder-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-2);
+  text-align: center;
+  gap: var(--space-3);
+  color: var(--color-text-secondary);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.empty-placeholder-card:hover {
+  border-color: var(--color-primary-light);
+  background: var(--color-surface-3);
+}
+
+.empty-placeholder-icon {
+  color: var(--color-text-tertiary);
+  opacity: 0.6;
+}
+
+.empty-placeholder-text {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
