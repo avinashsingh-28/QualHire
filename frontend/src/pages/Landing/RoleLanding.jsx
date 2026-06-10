@@ -362,13 +362,13 @@ const RoleLanding = ({ role: roleProp }) => {
         <div className="hero-bg-grid" aria-hidden="true" />
 
         <div className="hero-container">
-          <div className="hero-content">
-            <div className="hero-badge">
-              <span className="hero-badge-dot" />
+          <div className="hero-content animate-fade-in-up">
+            <div className="hero-badge animate-fade-in-up delay-100">
+              <span className="hero-badge-dot animate-pulse" />
               <span>{data.badge}</span>
             </div>
 
-            <h1 className="hero-title">
+            <h1 className="hero-title animate-fade-in-up delay-200">
               {data.title.split('&')[0]}
               {data.title.includes('&') && (
                 <>
@@ -378,9 +378,9 @@ const RoleLanding = ({ role: roleProp }) => {
               )}
             </h1>
 
-            <p className="hero-subtitle">{data.subtitle}</p>
+            <p className="hero-subtitle animate-fade-in-up delay-300">{data.subtitle}</p>
 
-            <div className="hero-actions">
+            <div className="hero-actions animate-fade-in-up delay-400">
               <Button
                 variant="primary"
                 size="xl"
@@ -403,8 +403,8 @@ const RoleLanding = ({ role: roleProp }) => {
           </div>
 
           {/* Interactive UI Mockup Visual */}
-          <div className="hero-visual">
-            <div className="mockup-frame">
+          <div className="hero-visual animate-scale-in delay-300">
+            <div className="mockup-frame animate-float">
               <div className="mockup-header">
                 <span className="dot dot-red" />
                 <span className="dot dot-yellow" />

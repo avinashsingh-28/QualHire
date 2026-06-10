@@ -64,6 +64,13 @@ export const api = {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     }).then(handleResponse),
+
+  upload: (path, formData) =>
+    fetch(`${BASE_URL}${path}`, {
+      method: 'POST',
+      headers: { ...getAuthHeaders() }, // Browser automatically sets Content-Type boundary for multipart
+      body: formData,
+    }).then(handleResponse),
 };
 
 export { ApiError };
