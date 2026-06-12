@@ -11,8 +11,8 @@ public class Attachment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "message_id", nullable = false)
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "message_id", nullable = true)
     @JsonIgnore
     private Message message;
 

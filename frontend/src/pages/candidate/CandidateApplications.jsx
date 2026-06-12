@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Briefcase, Building2, MapPin, Calendar, Clock, 
   CheckCircle2, FileText, MessageSquare, ChevronRight,
@@ -88,7 +89,13 @@ const MOCK_APPLICATIONS = [
 
 const CandidateApplications = () => {
   const [selectedApp, setSelectedApp] = useState(MOCK_APPLICATIONS[0]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const globalSearchTerm = searchParams.get('search') || '';
+  const [searchTerm, setSearchTerm] = useState(globalSearchTerm);
+
+  useEffect(() => {
+    setSearchTerm(globalSearchTerm);
+  }, [globalSearchTerm]);
 
   const filteredApps = MOCK_APPLICATIONS.filter(app => 
     app.role.toLowerCase().includes(searchTerm.toLowerCase()) || 

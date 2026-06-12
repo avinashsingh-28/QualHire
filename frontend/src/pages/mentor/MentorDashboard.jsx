@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Users, Star, Calendar, DollarSign, ArrowRight, Plus, Clock, BookOpen, MessageSquare } from 'lucide-react';
 import { StatCard } from '../../components/Card';
 import Button from '../../components/Button';
@@ -33,6 +33,8 @@ const REVIEWS = [
 const MentorDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const searchVal = searchParams.get('search') || '';
   const firstName = user?.name?.split(' ')[0] || 'there';
 
   return (
@@ -64,21 +66,36 @@ const MentorDashboard = () => {
               <Button variant="ghost" size="sm" rightIcon={<ArrowRight size={14} />} onClick={() => navigate('/mentor/sessions')}>View all</Button>
             </div>
             <div className="section-card-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-              {UPCOMING.map((s, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', padding: 'var(--space-4)', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--color-border)' }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-lg)', background: 'rgba(245,158,11,0.12)', color: 'var(--color-warning)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <BookOpen size={20} />
+              {(() => {
+                const filtered = UPCOMING.filter(s =>
+                  s.mentee.toLowerCase().includes(searchVal.toLowerCase()) ||
+                  s.type.toLowerCase().includes(searchVal.toLowerCase())
+                );
+                
+                if (filtered.length === 0) {
+                  return (
+                    <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+                      No upcoming sessions matching "{searchVal}".
+                    </div>
+                  );
+                }
+                
+                return filtered.map((s, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', padding: 'var(--space-4)', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-lg)', background: 'rgba(245,158,11,0.12)', color: 'var(--color-warning)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <BookOpen size={20} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', color: 'var(--color-text-primary)' }}>{s.mentee}</p>
+                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>{s.type} · {s.duration}</p>
+                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Clock size={10} /> {s.date} at {s.time}
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm">Join</Button>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', color: 'var(--color-text-primary)' }}>{s.mentee}</p>
-                    <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>{s.type} · {s.duration}</p>
-                    <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Clock size={10} /> {s.date} at {s.time}
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm">Join</Button>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           </div>
 
@@ -110,29 +127,45 @@ const MentorDashboard = () => {
               <Button variant="ghost" size="sm" rightIcon={<ArrowRight size={14} />} onClick={() => navigate('/mentor/candidates')}>All</Button>
             </div>
             <div className="section-card-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-              {MENTEES.map((m, i) => (
-                <div key={i}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
+              {(() => {
+                const filtered = MENTEES.filter(m =>
+                  m.name.toLowerCase().includes(searchVal.toLowerCase()) ||
+                  m.goal.toLowerCase().includes(searchVal.toLowerCase()) ||
+                  m.status.toLowerCase().includes(searchVal.toLowerCase())
+                );
+                
+                if (filtered.length === 0) {
+                  return (
+                    <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+                      No mentees matching "{searchVal}".
+                    </div>
+                  );
+                }
+                
+                return filtered.map((m, i) => (
+                  <div key={i}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg, #f59e0b, #d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color: 'white' }}>
+                          {m.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', color: 'var(--color-text-primary)' }}>{m.name}</p>
+                          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)' }}>{m.goal}</p>
+                        </div>
+                      </div>
+                      <span className={`badge ${m.status === 'ahead' ? 'badge-success' : 'badge-info'}`}>{m.status === 'ahead' ? 'Ahead' : 'On Track'}</span>
+                    </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg, #f59e0b, #d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color: 'white' }}>
-                        {m.name.split(' ').map(n => n[0]).join('')}
+                      <div className="progress-bar" style={{ flex: 1 }}>
+                        <div className="progress-bar-fill" style={{ width: `${m.progress}%`, background: 'linear-gradient(135deg, #f59e0b, #d97706)' }} />
                       </div>
-                      <div>
-                        <p style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', color: 'var(--color-text-primary)' }}>{m.name}</p>
-                        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)' }}>{m.goal}</p>
-                      </div>
+                      <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--font-semibold)', color: 'var(--color-text-secondary)', minWidth: 32 }}>{m.progress}%</span>
                     </div>
-                    <span className={`badge ${m.status === 'ahead' ? 'badge-success' : 'badge-info'}`}>{m.status === 'ahead' ? 'Ahead' : 'On Track'}</span>
+                    <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', marginTop: 4 }}>Next: {m.nextSession}</p>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                    <div className="progress-bar" style={{ flex: 1 }}>
-                      <div className="progress-bar-fill" style={{ width: `${m.progress}%`, background: 'linear-gradient(135deg, #f59e0b, #d97706)' }} />
-                    </div>
-                    <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--font-semibold)', color: 'var(--color-text-secondary)', minWidth: 32 }}>{m.progress}%</span>
-                  </div>
-                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', marginTop: 4 }}>Next: {m.nextSession}</p>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Briefcase, Users, Calendar, MapPin, DollarSign, Clock, Plus, 
   Search, Filter, Trash2, Edit2, CheckCircle, XCircle, BarChart3,
@@ -13,6 +13,7 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import Modal from '../../components/Modal';
 import useAuth from '../../hooks/useAuth';
+import { useSearchParams } from 'react-router-dom';
 import '../candidate/Dashboard.css'; // Leverage existing dashboard styles
 
 const INITIAL_JOBS = [
@@ -104,7 +105,13 @@ const STAGE_COLORS = {
 const RecruiterJobs = () => {
   const { user } = useAuth();
   const [jobs, setJobs] = useState(INITIAL_JOBS);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const globalSearchQuery = searchParams.get('search') || '';
+  const [searchQuery, setSearchQuery] = useState(globalSearchQuery);
+
+  useEffect(() => {
+    setSearchQuery(globalSearchQuery);
+  }, [globalSearchQuery]);
   const [statusFilter, setStatusFilter] = useState('all');
   
   // Modals / Drawer State

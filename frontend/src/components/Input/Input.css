@@ -47,6 +47,10 @@
   right: var(--space-3);
 }
 
+.input-suffix button {
+  pointer-events: auto;
+}
+
 .input-prefix ~ .input-field {
   padding-left: var(--space-9);
 }

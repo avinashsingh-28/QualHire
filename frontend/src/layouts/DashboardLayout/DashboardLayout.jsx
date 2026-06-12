@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { NavLink, Outlet, useNavigate, Link } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Briefcase, FileText, Calendar, Users, Settings,
   Bell, Sun, Moon, ChevronDown, LogOut, User, ChevronLeft, ChevronRight,
@@ -19,6 +19,7 @@ const NAV_CONFIG = {
     { label: 'Resume',        icon: <FileText size={18} />,        to: '/candidate/resume' },
     { label: 'Jobs',          icon: <Search size={18} />,          to: '/candidate/jobs' },
     { label: 'Applications',  icon: <Briefcase size={18} />,       to: '/candidate/applications', badge: 3 },
+    { label: 'Interviews',    icon: <Calendar size={18} />,        to: '/candidate/interviews' },
     { label: 'Assessments',   icon: <ClipboardList size={18} />,   to: '/candidate/assessments' },
     { label: 'Messages',      icon: <MessageSquare size={18} />,   to: '/candidate/messages', badge: 2 },
     { label: 'Mentorship',    icon: <BookOpen size={18} />,        to: '/candidate/mentorship' },
@@ -253,8 +254,62 @@ const ProfileDropdown = () => {
 /* ---- Dashboard Header ---- */
 const DashboardHeader = ({ collapsed, setCollapsed, onMobileOpen }) => {
   const { toggle, isDark } = useTheme();
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentSearch = searchParams.get('search') || '';
+  const [unreadCount, setUnreadCount] = useState(2);
+
+  useEffect(() => {
+    const updateUnreadCount = () => {
+      try {
+        const storageKey = `qh_notifications_${user?.id || 'default'}`;
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const list = JSON.parse(saved);
+          const count = list.filter(n => !n.read).length;
+          setUnreadCount(count);
+        } else {
+          setUnreadCount(2); // Seed default
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    updateUnreadCount();
+
+    window.addEventListener('qh_notifications_updated', updateUnreadCount);
+    window.addEventListener('storage', updateUnreadCount);
+    return () => {
+      window.removeEventListener('qh_notifications_updated', updateUnreadCount);
+      window.removeEventListener('storage', updateUnreadCount);
+    };
+  }, [user]);
+
+  const handleSearch = (q) => {
+    const path = location.pathname.replace(/\/$/, '');
+    const basePath = `/${role}`.replace(/\/$/, '');
+    
+    if (path !== basePath) {
+      if (q) {
+        navigate(`/${role}?search=${encodeURIComponent(q)}`);
+      } else {
+        navigate(`/${role}`);
+      }
+    } else {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        if (q) {
+          next.set('search', q);
+        } else {
+          next.delete('search');
+        }
+        return next;
+      });
+    }
+  };
 
   return (
     <header className="dashboard-header">
@@ -277,7 +332,8 @@ const DashboardHeader = ({ collapsed, setCollapsed, onMobileOpen }) => {
             placeholder="Search jobs, candidates, sessions…"
             variant="filled"
             size="sm"
-            onSearch={(q) => console.log('Search:', q)}
+            defaultValue={currentSearch}
+            onSearch={handleSearch}
           />
         </div>
       </div>
@@ -296,11 +352,11 @@ const DashboardHeader = ({ collapsed, setCollapsed, onMobileOpen }) => {
         {/* Notifications */}
         <button
           className="header-icon-btn"
-          aria-label="Notifications (5 unread)"
+          aria-label={`Notifications (${unreadCount} unread)`}
           id="notifications-btn"
           onClick={() => navigate(`/${role}/notifications`)}
         >
-          <NotificationBadge count={5} ping>
+          <NotificationBadge count={unreadCount} ping={unreadCount > 0}>
             <Bell size={18} />
           </NotificationBadge>
         </button>

@@ -67,12 +67,14 @@ public class ChatService {
     }
 
     public List<ConversationDto> getConversationsForUser(User user) {
-        List<Conversation> convs = conversationRepository.findByUser1OrUser2(user, user);
+        User managedUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + user.getId()));
+        List<Conversation> convs = conversationRepository.findByUser1OrUser2(managedUser, managedUser);
         List<ConversationDto> dtos = new ArrayList<>();
 
         for (Conversation c : convs) {
-            UserChatStatus status = userChatStatusRepository.findByUserAndConversation(user, c)
-                    .orElseGet(() -> userChatStatusRepository.save(new UserChatStatus(user, c)));
+            UserChatStatus status = userChatStatusRepository.findByUserAndConversation(managedUser, c)
+                    .orElseGet(() -> userChatStatusRepository.save(new UserChatStatus(managedUser, c)));
 
             if (status.isDeleted()) {
                 continue;
@@ -110,6 +112,7 @@ public class ChatService {
             dto.setRoleContext(partner.getRole().equals("candidate") ? "Software Engineer" : partner.getRole().equals("recruiter") ? "Senior Recruiter" : "Consulting Partner");
             dto.setMuted(status.isMuted());
             dto.setArchived(status.isArchived());
+            dto.setBlocked(status.isBlocked());
 
             if (lastMsg != null) {
                 dto.setLastMessage(mapToMessageDto(lastMsg, user));
@@ -122,10 +125,12 @@ public class ChatService {
     }
 
     public List<MessageDto> getMessagesForConversation(User user, String chatId) {
-        Conversation conversation = getConversationFromChatId(user, chatId);
+        User managedUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + user.getId()));
+        Conversation conversation = getConversationFromChatId(managedUser, chatId);
 
-        UserChatStatus status = userChatStatusRepository.findByUserAndConversation(user, conversation)
-                .orElseGet(() -> userChatStatusRepository.save(new UserChatStatus(user, conversation)));
+        UserChatStatus status = userChatStatusRepository.findByUserAndConversation(managedUser, conversation)
+                .orElseGet(() -> userChatStatusRepository.save(new UserChatStatus(managedUser, conversation)));
 
         List<Message> messages;
         if (status.getClearedAt() != null) {
@@ -147,10 +152,12 @@ public class ChatService {
     }
 
     public MessageDto saveMessage(User sender, String chatId, MessageDto request) {
-        Conversation conversation = getConversationFromChatId(sender, chatId);
+        User managedSender = userRepository.findById(sender.getId())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + sender.getId()));
+        Conversation conversation = getConversationFromChatId(managedSender, chatId);
 
         // Check if blocked
-        User partner = conversation.getUser1().getId().equals(sender.getId()) ? conversation.getUser2() : conversation.getUser1();
+        User partner = conversation.getUser1().getId().equals(managedSender.getId()) ? conversation.getUser2() : conversation.getUser1();
         UserChatStatus partnerStatus = userChatStatusRepository.findByUserAndConversation(partner, conversation)
                 .orElseGet(() -> userChatStatusRepository.save(new UserChatStatus(partner, conversation)));
         
@@ -160,7 +167,7 @@ public class ChatService {
 
         Message message = new Message();
         message.setConversation(conversation);
-        message.setSender(sender);
+        message.setSender(managedSender);
         message.setText(request.getText());
         message.setType(request.getType() != null ? request.getType() : "CHAT");
         message.setTimestamp(LocalDateTime.now());
@@ -185,13 +192,19 @@ public class ChatService {
             userChatStatusRepository.save(partnerStatus);
         }
 
-        return mapToMessageDto(saved, sender);
+        return mapToMessageDto(saved, managedSender);
     }
 
     public void executeChatAction(User user, String chatId, String action, boolean value) {
-        Conversation conversation = getConversationFromChatId(user, chatId);
-        UserChatStatus status = userChatStatusRepository.findByUserAndConversation(user, conversation)
-                .orElseGet(() -> userChatStatusRepository.save(new UserChatStatus(user, conversation)));
+        System.out.println("[ChatService] Executing action: " + action + ", value: " + value + ", user: " + user.getEmail() + ", chatId: " + chatId);
+        if (action == null) {
+            throw new IllegalArgumentException("Action cannot be null");
+        }
+        User managedUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + user.getId()));
+        Conversation conversation = getConversationFromChatId(managedUser, chatId);
+        UserChatStatus status = userChatStatusRepository.findByUserAndConversation(managedUser, conversation)
+                .orElseGet(() -> userChatStatusRepository.save(new UserChatStatus(managedUser, conversation)));
 
         switch (action.toLowerCase()) {
             case "mute" -> status.setMuted(value);
