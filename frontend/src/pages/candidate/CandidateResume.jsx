@@ -324,7 +324,7 @@ const CandidateResume = () => {
             <div className="section-card-body">
               <div className="resume-preview-container">
                 {activeResume ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', alignItems: 'center' }}>
                     <div className="resume-preview-file-header" style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -333,14 +333,17 @@ const CandidateResume = () => {
                       background: 'var(--color-surface-2)',
                       borderBottom: '1px solid var(--color-border)',
                       borderTopLeftRadius: '8px',
-                      borderTopRightRadius: '8px'
+                      borderTopRightRadius: '8px',
+                      width: '100%',
+                      maxWidth: '800px',
+                      margin: '0 auto'
                     }}>
                       <FileText size={18} color="var(--color-primary)" />
                       <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>{activeResume.name}</span>
                       <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginLeft: 'auto' }}>{activeResume.size}</span>
                     </div>
                     {activeResume.fileUrl ? (
-                      <div className="resume-preview-mock" style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, padding: 0, height: '480px' }}>
+                      <div className="resume-preview-mock" style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, padding: 0, height: '650px', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
                         <iframe 
                           src={activeResume.fileUrl} 
                           width="100%" 
@@ -350,7 +353,7 @@ const CandidateResume = () => {
                         />
                       </div>
                     ) : (
-                      <div className="resume-preview-mock" style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
+                      <div className="resume-preview-mock" style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, width: '100%', maxWidth: '800px', margin: '0 auto' }}>
                         <div className="resume-mock-header">
                           <h2>{profileData?.personal?.name?.toUpperCase() || user?.name?.toUpperCase() || 'YOUR NAME'}</h2>
                           <p>

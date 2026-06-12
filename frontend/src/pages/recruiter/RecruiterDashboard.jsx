@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Users, Briefcase, Calendar, TrendingUp, Plus,
   Search, Filter, ArrowRight, Eye, MessageSquare,
@@ -82,6 +82,8 @@ const CustomTooltip = ({ active, payload, label }) => {
 const RecruiterDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const searchVal = searchParams.get('search') || '';
   const firstName = user?.name?.split(' ')[0] || 'Team';
 
   return (
@@ -220,36 +222,53 @@ const RecruiterDashboard = () => {
               <Button variant="ghost" size="sm" rightIcon={<ArrowRight size={14} />} onClick={() => navigate('/recruiter/applicants')}>View All</Button>
             </div>
             <div className="section-card-body" style={{ padding: '0' }}>
-              {RECENT_APPLICANTS.map((applicant, index) => (
-                <div key={applicant.id} style={{ 
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '16px 24px', borderBottom: index < RECENT_APPLICANTS.length - 1 ? '1px solid var(--color-border)' : 'none',
-                  cursor: 'pointer', transition: 'background 0.2s ease'
-                }} className="hover-bg-surface">
-                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <div style={{ 
-                      width: '40px', height: '40px', borderRadius: '50%', background: 'var(--color-surface-hover)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold',
-                      color: 'var(--color-text-primary)', border: '1px solid var(--color-border)'
-                    }}>
-                      {applicant.name.split(' ').map(n => n[0]).join('')}
+              {(() => {
+                const filtered = RECENT_APPLICANTS.filter(applicant =>
+                  applicant.name.toLowerCase().includes(searchVal.toLowerCase()) ||
+                  applicant.role.toLowerCase().includes(searchVal.toLowerCase()) ||
+                  applicant.source.toLowerCase().includes(searchVal.toLowerCase()) ||
+                  applicant.stage.toLowerCase().includes(searchVal.toLowerCase())
+                );
+                
+                if (filtered.length === 0) {
+                  return (
+                    <div style={{ padding: '24px', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '14px' }}>
+                      No applicants found matching "{searchVal}".
                     </div>
-                    <div>
-                      <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)' }}>{applicant.name}</h4>
-                      <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>{applicant.role}</p>
+                  );
+                }
+                
+                return filtered.map((applicant, index) => (
+                  <div key={applicant.id} style={{ 
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '16px 24px', borderBottom: index < filtered.length - 1 ? '1px solid var(--color-border)' : 'none',
+                    cursor: 'pointer', transition: 'background 0.2s ease'
+                  }} className="hover-bg-surface">
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                      <div style={{ 
+                        width: '40px', height: '40px', borderRadius: '50%', background: 'var(--color-surface-hover)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold',
+                        color: 'var(--color-text-primary)', border: '1px solid var(--color-border)'
+                      }}>
+                        {applicant.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div>
+                        <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)' }}>{applicant.name}</h4>
+                        <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>{applicant.role}</p>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                      <span style={{ 
+                        fontSize: '11px', fontWeight: 600, padding: '4px 8px', borderRadius: '12px',
+                        background: STAGE_COLORS[applicant.stage].bg, color: STAGE_COLORS[applicant.stage].text 
+                      }}>
+                        {STAGE_COLORS[applicant.stage].label}
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{applicant.date} • {applicant.source}</span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                    <span style={{ 
-                      fontSize: '11px', fontWeight: 600, padding: '4px 8px', borderRadius: '12px',
-                      background: STAGE_COLORS[applicant.stage].bg, color: STAGE_COLORS[applicant.stage].text 
-                    }}>
-                      {STAGE_COLORS[applicant.stage].label}
-                    </span>
-                    <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{applicant.date} • {applicant.source}</span>
-                  </div>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           </div>
 

@@ -8,6 +8,7 @@ import {
 import useAuth from '../hooks/useAuth';
 import api from '../services/api';
 import './candidate/Dashboard.css';
+import './Messages.css';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client/dist/sockjs';
 
@@ -437,26 +438,37 @@ const Messages = () => {
   // 7. Chat Actions (Archive, Mute, Clear, Delete, Block)
   const handleChatAction = async (action, value = true) => {
     setShowMenu(false);
+    
+    // Save current states for rollback in case of error
+    const previousConversations = conversations;
+    const previousActiveChatId = activeChatId;
+
+    // Apply optimistic updates instantly
+    if (action === 'clear') {
+      setConversations(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: [] } : c));
+    } else if (action === 'delete' || action === 'archive') {
+      const remaining = conversations.filter(c => c.id !== activeChatId);
+      setConversations(remaining);
+      if (remaining.length > 0) {
+        setActiveChatId(remaining[0].id);
+      } else {
+        setActiveChatId('');
+      }
+    } else if (action === 'mute') {
+      setConversations(prev => prev.map(c => c.id === activeChatId ? { ...c, isMuted: value } : c));
+    } else if (action === 'block') {
+      setConversations(prev => prev.map(c => c.id === activeChatId ? { ...c, isBlocked: value } : c));
+      alert(value ? "User blocked successfully" : "User unblocked successfully");
+    }
+
     try {
       await api.put(`/chat/conversations/${activeChatId}/action`, { action, value });
-      
-      if (action === 'clear') {
-        setConversations(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: [] } : c));
-      } else if (action === 'delete' || action === 'archive') {
-        setConversations(prev => prev.filter(c => c.id !== activeChatId));
-        if (conversations.length > 1) {
-          const remaining = conversations.filter(c => c.id !== activeChatId);
-          setActiveChatId(remaining[0].id);
-        } else {
-          setActiveChatId('');
-        }
-      } else if (action === 'mute') {
-        setConversations(prev => prev.map(c => c.id === activeChatId ? { ...c, isMuted: value } : c));
-      } else if (action === 'block') {
-        alert(value ? "User blocked successfully" : "User unblocked successfully");
-      }
     } catch (err) {
       console.error(`Failed to execute action ${action}`, err);
+      // Rollback to previous state
+      setConversations(previousConversations);
+      setActiveChatId(previousActiveChatId);
+      alert(`Error performing action. Please try again.`);
     }
   };
 
@@ -551,49 +563,41 @@ const Messages = () => {
   ) : [];
 
   return (
-    <div className="dashboard-page" style={{ height: 'calc(100vh - 80px)', padding: '0', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', height: '100%', background: 'var(--color-surface)', position: 'relative' }}>
+    <div className="messages-container-page">
+      <div className="messages-layout-wrapper">
         
         {/* ---- LEFT SIDEBAR: Conversation List / New Chat Sidebar ---- */}
-        <div style={{ width: '350px', borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        <div className="messages-left-sidebar">
           
           {!showNewChatSidebar ? (
             // Regular Conversations Sidebar View
             <>
               {/* Header & Search */}
-              <div style={{ padding: '20px', borderBottom: '1px solid var(--color-border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--color-text-primary)', margin: 0 }}>Messages</h2>
+              <div className="messages-left-sidebar-header">
+                <div className="messages-sidebar-top-row">
+                  <h2 className="messages-sidebar-title">Messages</h2>
                   <button 
                     onClick={handleNewChatOpen}
                     title="New Chat"
-                    style={{ 
-                      background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', 
-                      padding: '8px', display: 'flex', alignItems: 'center', borderRadius: '50%',
-                      background: 'rgba(99, 102, 241, 0.08)'
-                    }}
+                    className="messages-new-chat-btn"
                   >
                     <Plus size={20} />
                   </button>
                 </div>
-                <div style={{ position: 'relative' }}>
-                  <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-secondary)' }} />
+                <div className="messages-sidebar-search-box">
+                  <Search size={16} className="messages-sidebar-search-icon" />
                   <input 
                     type="text" 
                     placeholder="Search messages..." 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{
-                      width: '100%', padding: '10px 12px 10px 36px', borderRadius: '8px', 
-                      border: '1px solid var(--color-border)', background: 'var(--color-bg)',
-                      color: 'var(--color-text-primary)', fontSize: '14px', outline: 'none'
-                    }}
+                    className="messages-sidebar-search-input"
                   />
                 </div>
               </div>
 
               {/* List of Chats */}
-              <div style={{ flex: 1, overflowY: 'auto' }}>
+              <div className="messages-conversation-list">
                 {filteredConversations.length === 0 ? (
                   <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--color-text-tertiary)' }}>
                     No active conversations
@@ -607,54 +611,35 @@ const Messages = () => {
                       <div 
                         key={chat.id}
                         onClick={() => handleChatSelect(chat.id)}
-                        style={{
-                          padding: '16px 20px', cursor: 'pointer', borderBottom: '1px solid var(--color-border)',
-                          background: isActive ? 'var(--color-bg-secondary)' : 'transparent',
-                          display: 'flex', gap: '12px', alignItems: 'center', transition: 'background 0.2s'
-                        }}
+                        className={`messages-chat-item ${isActive ? 'active' : ''}`}
                       >
-                        <div style={{ position: 'relative' }}>
-                          <div style={{ 
-                            width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '18px', fontWeight: 'bold'
-                          }}>
+                        <div className="messages-chat-item-avatar-box">
+                          <div className="messages-chat-item-avatar">
                             {chat.avatar}
                           </div>
-                          <div style={{ 
-                            position: 'absolute', bottom: '2px', right: '2px', width: '12px', height: '12px', 
-                            borderRadius: '50%', background: chat.isOnline ? '#10b981' : '#94a3b8', 
-                            border: '2px solid var(--color-surface)' 
-                          }} />
+                          <div className={`messages-status-dot ${chat.isOnline ? 'online' : 'offline'}`} />
                         </div>
 
-                        <div style={{ flex: 1, overflow: 'hidden' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
-                            <h3 style={{ fontSize: '15px', fontWeight: chat.unread > 0 ? 700 : 600, color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <div className="messages-chat-item-text-area">
+                          <div className="messages-chat-item-first-row">
+                            <h3 className="messages-chat-item-name" style={{ fontWeight: chat.unread > 0 ? 700 : 600 }}>
                               {chat.name}
                             </h3>
                             {lastMessage && (
-                              <span style={{ fontSize: '11px', color: chat.unread > 0 ? '#3b82f6' : 'var(--color-text-tertiary)', fontWeight: chat.unread > 0 ? 600 : 400, flexShrink: 0, marginLeft: '8px' }}>
+                              <span className="messages-chat-item-time" style={{ fontWeight: chat.unread > 0 ? 600 : 400, color: chat.unread > 0 ? 'var(--color-primary)' : 'var(--color-text-tertiary)' }}>
                                 {lastMessage.time}
                               </span>
                             )}
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <p style={{ 
-                              fontSize: '13px', color: chat.unread > 0 ? 'var(--color-text-primary)' : 'var(--color-text-secondary)', 
-                              fontWeight: chat.unread > 0 ? 500 : 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                              display: 'flex', alignItems: 'center', gap: '4px'
-                            }}>
+                          <div className="messages-chat-item-second-row">
+                            <p className="messages-chat-item-preview-text" style={{ fontWeight: chat.unread > 0 ? 500 : 400, color: chat.unread > 0 ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}>
                               {lastMessage?.sender === 'me' && (
                                 <span style={{ color: 'var(--color-text-tertiary)' }}>You: </span>
                               )}
                               {lastMessage?.type === 'STICKER' ? 'Sent a sticker' : lastMessage?.type === 'ATTACHMENT' ? 'Sent a file' : (lastMessage?.text || 'Start conversation')}
                             </p>
                             {chat.unread > 0 && (
-                              <div style={{ 
-                                background: '#3b82f6', color: '#fff', fontSize: '11px', fontWeight: 'bold', 
-                                height: '20px', minWidth: '20px', borderRadius: '10px', display: 'flex', 
-                                alignItems: 'center', justifyContent: 'center', padding: '0 6px', marginLeft: '8px'
-                              }}>
+                              <div className="messages-chat-item-unread-bubble">
                                 {chat.unread}
                               </div>
                             )}
@@ -668,9 +653,9 @@ const Messages = () => {
             </>
           ) : (
             // New Chat Sidebar View (Select User)
-            <>
+            <div className="messages-new-chat-drawer" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               {/* Header with Back Arrow */}
-              <div style={{ padding: '20px', borderBottom: '1px solid var(--color-border)' }}>
+              <div className="messages-left-sidebar-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
                   <button 
                     onClick={() => setShowNewChatSidebar(false)}
@@ -678,22 +663,18 @@ const Messages = () => {
                   >
                     <ArrowLeft size={20} />
                   </button>
-                  <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--color-text-primary)', margin: 0 }}>New Chat</h2>
+                  <h2 className="messages-sidebar-title" style={{ fontSize: '18px' }}>New Chat</h2>
                 </div>
                 
                 {/* User query search bar */}
-                <div style={{ position: 'relative' }}>
-                  <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-secondary)' }} />
+                <div className="messages-sidebar-search-box">
+                  <Search size={16} className="messages-sidebar-search-icon" />
                   <input 
                     type="text" 
                     placeholder="Search people by name or email..." 
                     value={newChatSearchQuery}
                     onChange={handleNewChatQueryChange}
-                    style={{
-                      width: '100%', padding: '10px 12px 10px 36px', borderRadius: '8px', 
-                      border: '1px solid var(--color-border)', background: 'var(--color-bg)',
-                      color: 'var(--color-text-primary)', fontSize: '14px', outline: 'none'
-                    }}
+                    className="messages-sidebar-search-input"
                   />
                 </div>
               </div>
@@ -720,10 +701,7 @@ const Messages = () => {
                       onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-secondary)'}
                       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     >
-                      <div style={{ 
-                        width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '16px', fontWeight: 'bold'
-                      }}>
+                      <div className="messages-chat-item-avatar" style={{ marginRight: '12px' }}>
                         {partner.avatar}
                       </div>
                       <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -738,45 +716,38 @@ const Messages = () => {
                   ))
                 )}
               </div>
-            </>
+            </div>
           )}
 
         </div>
 
         {/* ---- RIGHT PANE: Active Chat ---- */}
         {activeChat ? (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--color-bg)' }}>
+          <div className="messages-chat-area-container">
             
             {/* Header */}
-            <div style={{ 
-              padding: '20px 24px', borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative'
-            }}>
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                <div style={{ position: 'relative' }}>
-                  <div style={{ 
-                    width: '42px', height: '42px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '16px', fontWeight: 'bold'
-                  }}>
-                    {activeChat.avatar}
-                  </div>
+            <div className="messages-chat-header">
+              <div className="messages-chat-header-info">
+                <div className="messages-chat-header-avatar">
+                  {activeChat.avatar}
                 </div>
                 <div>
-                  <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--color-text-primary)' }}>
+                  <h2 className="messages-chat-header-title">
                     {activeChat.name}
                   </h2>
-                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Circle size={10} fill={activeChat.isOnline ? '#10b981' : '#94a3b8'} color={activeChat.isOnline ? '#10b981' : '#94a3b8'} />
+                  <p className="messages-chat-header-status">
+                    <span className={`messages-chat-header-status-dot ${activeChat.isOnline ? 'online' : 'offline'}`} />
                     {activeChat.isOnline ? 'Active Now' : 'Offline'} • {activeChat.roleContext}
                   </p>
                 </div>
               </div>
               
               {/* Header Right Buttons */}
-              <div style={{ display: 'flex', gap: '20px', color: 'var(--color-text-secondary)', alignItems: 'center' }}>
+              <div className="messages-chat-header-actions">
                 <Info 
                   size={20} 
-                  style={{ cursor: 'pointer', color: showDetailsPanel ? 'var(--color-primary)' : 'inherit' }} 
+                  className="messages-action-icon"
+                  style={{ color: showDetailsPanel ? 'var(--color-primary)' : 'inherit' }} 
                   title="Details" 
                   onClick={() => setShowDetailsPanel(prev => !prev)}
                 />
@@ -785,24 +756,20 @@ const Messages = () => {
                 <div style={{ position: 'relative' }} ref={menuRef}>
                   <MoreVertical 
                     size={20} 
-                    style={{ cursor: 'pointer' }} 
+                    className="messages-action-icon"
                     onClick={() => setShowMenu(prev => !prev)}
                   />
                   {showMenu && (
-                    <div style={{
-                      position: 'absolute', right: '0', top: '28px', background: 'var(--color-surface)',
-                      border: '1px solid var(--color-border)', borderRadius: '8px', boxShadow: 'var(--shadow-lg)',
-                      width: '180px', zIndex: 100, display: 'flex', flexDirection: 'column', padding: '6px 0'
-                    }}>
-                      <button onClick={() => { setShowMenu(false); setShowDetailsPanel(true); }} style={menuBtnStyle}>View Profile</button>
-                      <button onClick={() => { setShowMenu(false); setShowMessageSearch(prev => !prev); }} style={menuBtnStyle}>Search Messages</button>
-                      <button onClick={() => handleChatAction('mute', !activeChat.isMuted)} style={menuBtnStyle}>
+                    <div className="chat-menu-dropdown">
+                      <button onClick={() => { setShowMenu(false); setShowDetailsPanel(true); }} className="chat-menu-btn">View Profile</button>
+                      <button onClick={() => { setShowMenu(false); setShowMessageSearch(prev => !prev); }} className="chat-menu-btn">Search Messages</button>
+                      <button onClick={() => handleChatAction('mute', !activeChat.isMuted)} className="chat-menu-btn">
                         {activeChat.isMuted ? 'Unmute' : 'Mute Conversation'}
                       </button>
-                      <button onClick={() => handleChatAction('archive')} style={menuBtnStyle}>Archive Chat</button>
-                      <button onClick={() => handleChatAction('clear')} style={menuBtnStyle}>Clear Chat</button>
-                      <button onClick={() => handleChatAction('delete')} style={menuBtnStyle}>Delete Chat</button>
-                      <button onClick={() => handleChatAction('block', true)} style={{ ...menuBtnStyle, color: 'var(--color-danger)' }}>Block User</button>
+                      <button onClick={() => handleChatAction('archive')} className="chat-menu-btn">Archive Chat</button>
+                      <button onClick={() => handleChatAction('clear')} className="chat-menu-btn">Clear Chat</button>
+                      <button onClick={() => handleChatAction('delete')} className="chat-menu-btn">Delete Chat</button>
+                      <button onClick={() => handleChatAction('block', true)} className="chat-menu-btn danger">Block User</button>
                     </div>
                   )}
                 </div>
@@ -811,20 +778,14 @@ const Messages = () => {
 
             {/* Keyword Message Search Bar */}
             {showMessageSearch && (
-              <div style={{
-                background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)',
-                padding: '10px 24px', display: 'flex', gap: '12px', alignItems: 'center'
-              }}>
+              <div className="messages-keyword-search-bar">
                 <Search size={16} style={{ color: 'var(--color-text-secondary)' }} />
                 <input 
                   type="text" 
                   placeholder="Filter messages in this conversation..."
                   value={messageSearchQuery}
                   onChange={(e) => setMessageSearchQuery(e.target.value)}
-                  style={{
-                    flex: 1, padding: '6px 12px', borderRadius: '4px', border: '1px solid var(--color-border)',
-                    background: 'var(--color-bg)', color: 'var(--color-text-primary)', fontSize: '13px', outline: 'none'
-                  }}
+                  className="messages-keyword-search-input"
                 />
                 <button onClick={() => { setShowMessageSearch(false); setMessageSearchQuery(''); }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)' }}>
                   <X size={16} />
@@ -833,17 +794,18 @@ const Messages = () => {
             )}
 
             {/* Message Thread */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="messages-chat-thread">
               {displayedMessages.length === 0 && !isTyping ? (
-                <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-tertiary)', fontSize: '14px' }}>
-                  No messages yet. Send a message to start the conversation!
+                <div className="messages-thread-empty-state">
+                  <MessageSquare size={32} className="messages-chat-item-empty-icon" />
+                  <span>No messages yet. Send a message to start the conversation!</span>
                 </div>
               ) : (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0' }}>
-                    <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
-                    <span style={{ padding: '0 12px', fontSize: '12px', fontWeight: 600, color: 'var(--color-text-tertiary)', textTransform: 'uppercase' }}>Today</span>
-                    <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
+                  <div className="messages-date-divider">
+                    <div className="messages-date-line" />
+                    <span className="messages-date-text">Today</span>
+                    <div className="messages-date-line" />
                   </div>
 
                   {displayedMessages.map((msg, idx) => {
@@ -851,23 +813,20 @@ const Messages = () => {
                     const showAvatar = !isMe && (idx === 0 || activeChat.messages[idx - 1]?.sender !== 'them');
 
                     return (
-                      <div key={msg.id} style={{ display: 'flex', gap: '12px', alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '75%' }}>
+                      <div key={msg.id} className={`messages-bubble-row ${isMe ? 'me' : 'them'}`}>
                         {!isMe && (
-                          <div style={{ width: '32px' }}>
+                          <div className="messages-bubble-avatar-placeholder">
                             {showAvatar && (
-                              <div style={{ 
-                                width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '12px', fontWeight: 'bold'
-                              }}>
+                              <div className="messages-bubble-avatar">
                                 {activeChat.avatar}
                               </div>
                             )}
                           </div>
                         )}
                         
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
+                        <div className="messages-bubble-content-box">
                           {msg.type === 'STICKER' ? (
-                            <div style={{ padding: '8px', cursor: 'default' }}>
+                            <div className="messages-sticker-img-wrapper">
                               {STICKERS[msg.text] || <span style={{ fontStyle: 'italic' }}>[Sticker: {msg.text}]</span>}
                             </div>
                           ) : msg.type === 'ATTACHMENT' ? (
@@ -875,10 +834,9 @@ const Messages = () => {
                               const isImage = a.fileType?.startsWith('image/');
                               if (isImage) {
                                 return (
-                                  <div key={a.id} style={{
-                                    background: isMe ? 'var(--color-primary)' : 'var(--color-surface)',
+                                  <div key={a.id} className="messages-sticker-img-wrapper" style={{
                                     border: '1px solid var(--color-border)', borderRadius: '12px', padding: '6px',
-                                    cursor: 'pointer', position: 'relative'
+                                    cursor: 'pointer', position: 'relative', background: 'var(--color-surface)'
                                   }} onClick={() => handleDownloadFile(a.id, a.fileName)}>
                                     <img src={`http://localhost:8080/api/v1/chat/attachments/download/${a.id}`} 
                                          alt={a.fileName} 
@@ -900,19 +858,16 @@ const Messages = () => {
                                 <div 
                                   key={a.id} 
                                   onClick={() => handleDownloadFile(a.id, a.fileName)}
-                                  style={{
-                                    display: 'flex', alignItems: 'center', gap: '12px',
-                                    background: isMe ? 'rgba(255,255,255,0.15)' : 'var(--color-bg-secondary)',
-                                    border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px 16px',
-                                    color: isMe ? '#ffffff' : 'var(--color-text-primary)', cursor: 'pointer', width: '240px'
-                                  }}
+                                  className="messages-attachment-card"
                                 >
-                                  <FileText size={24} />
-                                  <div style={{ flex: 1, minWidth: 0 }}>
-                                    <p style={{ fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
+                                  <div className="messages-attachment-icon-holder">
+                                    <FileText size={20} />
+                                  </div>
+                                  <div className="messages-attachment-details">
+                                    <p className="messages-attachment-name">
                                       {a.fileName}
                                     </p>
-                                    <p style={{ fontSize: '11px', opacity: 0.7, margin: 0 }}>
+                                    <p className="messages-attachment-size">
                                       {(a.fileSize / 1024).toFixed(1)} KB
                                     </p>
                                   </div>
@@ -921,27 +876,18 @@ const Messages = () => {
                               );
                             })
                           ) : (
-                            <div style={{ 
-                              background: isMe ? 'var(--color-primary)' : 'var(--color-surface)', 
-                              color: isMe ? '#fff' : 'var(--color-text-primary)',
-                              padding: '12px 16px', borderRadius: '16px',
-                              borderBottomRightRadius: isMe ? '4px' : '16px',
-                              borderBottomLeftRadius: !isMe ? '4px' : '16px',
-                              border: isMe ? 'none' : '1px solid var(--color-border)',
-                              boxShadow: 'var(--shadow-sm)',
-                              fontSize: '14px', lineHeight: '1.5', wordBreak: 'break-word'
-                            }}>
+                            <div className="messages-bubble-body">
                               {msg.text}
                             </div>
                           )}
                           
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '11px', color: 'var(--color-text-tertiary)' }}>
+                          <div className="messages-bubble-meta">
                             <span>{msg.time}</span>
                             {isMe && (
                               <span style={{ display: 'flex', alignItems: 'center' }}>
-                                {msg.status === 'sent' && <Check size={14} />}
-                                {msg.status === 'delivered' && <CheckCheck size={14} />}
-                                {msg.status === 'read' && <CheckCheck size={14} color="var(--color-primary)" />}
+                                {msg.status === 'sent' && <Check size={12} />}
+                                {msg.status === 'delivered' && <CheckCheck size={12} />}
+                                {msg.status === 'read' && <CheckCheck size={12} color="var(--color-primary)" />}
                               </span>
                             )}
                           </div>
@@ -953,14 +899,16 @@ const Messages = () => {
               )}
               
               {isTyping && (
-                <div style={{ display: 'flex', gap: '12px', alignSelf: 'flex-start' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '12px', fontWeight: 'bold' }}>
-                    {activeChat.avatar}
+                <div className="messages-bubble-row them">
+                  <div className="messages-bubble-avatar-placeholder">
+                    <div className="messages-bubble-avatar">
+                      {activeChat.avatar}
+                    </div>
                   </div>
-                  <div style={{ background: 'var(--color-surface)', padding: '12px 16px', borderRadius: '16px', borderBottomLeftRadius: '4px', border: '1px solid var(--color-border)', display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <span className="typing-dot" style={{ width: '6px', height: '6px', background: 'var(--color-text-tertiary)', borderRadius: '50%', animation: 'typing 1.4s infinite ease-in-out both' }} />
-                    <span className="typing-dot" style={{ width: '6px', height: '6px', background: 'var(--color-text-tertiary)', borderRadius: '50%', animation: 'typing 1.4s infinite ease-in-out both', animationDelay: '0.2s' }} />
-                    <span className="typing-dot" style={{ width: '6px', height: '6px', background: 'var(--color-text-tertiary)', borderRadius: '50%', animation: 'typing 1.4s infinite ease-in-out both', animationDelay: '0.4s' }} />
+                  <div className="messages-typing-box">
+                    <span className="messages-typing-dot" />
+                    <span className="messages-typing-dot" />
+                    <span className="messages-typing-dot" />
                   </div>
                 </div>
               )}
@@ -968,69 +916,50 @@ const Messages = () => {
             </div>
 
             {/* Input Box */}
-            <div style={{ padding: '20px 24px', background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', position: 'relative' }}>
+            <div className="messages-chat-input-bar">
               
               {/* EMOJI & STICKER PICKER POPUP */}
               {showEmojiPicker && (
-                <div ref={pickerRef} style={{
-                  position: 'absolute', bottom: '85px', left: '24px', width: '340px', height: '320px',
-                  background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-                  borderRadius: '16px', boxShadow: 'var(--shadow-xl)', display: 'flex', flexDirection: 'column', zIndex: 10
-                }}>
-                  <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', padding: '8px 12px', gap: '8px' }}>
+                <div ref={pickerRef} className="messages-popup-emoji-picker">
+                  <div className="messages-emoji-tab-bar">
                     <button 
                       onClick={() => setPickerTab('emoji')}
-                      style={{ 
-                        flex: 1, padding: '8px', border: 'none', borderRadius: '6px', cursor: 'pointer',
-                        fontWeight: '600', fontSize: '13px',
-                        background: pickerTab === 'emoji' ? 'var(--color-primary)' : 'transparent',
-                        color: pickerTab === 'emoji' ? '#ffffff' : 'var(--color-text-secondary)',
-                        transition: '0.2s'
-                      }}
+                      className={`messages-emoji-tab-btn ${pickerTab === 'emoji' ? 'active' : ''}`}
                     >
                       Emojis
                     </button>
                     <button 
                       onClick={() => setPickerTab('sticker')}
-                      style={{ 
-                        flex: 1, padding: '8px', border: 'none', borderRadius: '6px', cursor: 'pointer',
-                        fontWeight: '600', fontSize: '13px',
-                        background: pickerTab === 'sticker' ? 'var(--color-primary)' : 'transparent',
-                        color: pickerTab === 'sticker' ? '#ffffff' : 'var(--color-text-secondary)',
-                        transition: '0.2s'
-                      }}
+                      className={`messages-emoji-tab-btn ${pickerTab === 'sticker' ? 'active' : ''}`}
                     >
                       Stickers
                     </button>
                   </div>
 
-                  <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+                  <div className="messages-emoji-scroll-content">
                     {pickerTab === 'emoji' ? (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', justifyItems: 'center' }}>
+                      <div className="messages-emoji-grid">
                         {POPULAR_EMOJIS.map(emoji => (
                           <span 
                             key={emoji} 
                             onClick={() => handleEmojiSelect(emoji)}
-                            style={{ fontSize: '22px', cursor: 'pointer', padding: '4px', borderRadius: '4px', userSelect: 'none', transition: 'transform 0.1s' }}
-                            onMouseEnter={(e) => e.target.style.transform = 'scale(1.2)'}
-                            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                            className="messages-emoji-item-btn"
                           >
                             {emoji}
                           </span>
                         ))}
                       </div>
                     ) : (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', justifyItems: 'center' }}>
+                      <div className="messages-sticker-grid">
                         {Object.keys(STICKERS).map(stickerId => (
-                          <div 
+                          <button 
                             key={stickerId}
                             onClick={() => handleSendSticker(stickerId)}
-                            style={{ cursor: 'pointer', padding: '4px', borderRadius: '8px', border: '1px solid transparent', transition: 'background 0.2s, transform 0.2s' }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-bg-secondary)'; e.currentTarget.style.transform = 'scale(1.05)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'scale(1)'; }}
+                            className="messages-sticker-item-btn"
+                            type="button"
                           >
                             {STICKERS[stickerId]}
-                          </div>
+                          </button>
                         ))}
                       </div>
                     )}
@@ -1039,7 +968,7 @@ const Messages = () => {
               )}
 
               {/* Form Input Container */}
-              <form onSubmit={handleSendMessage} style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', background: 'var(--color-bg)', padding: '8px 16px', borderRadius: '24px', border: '1px solid var(--color-border)' }}>
+              <form onSubmit={handleSendMessage} className="messages-chat-form">
                 <input 
                   type="file" 
                   ref={fileInputRef} 
@@ -1050,7 +979,7 @@ const Messages = () => {
                 <button 
                   type="button" 
                   onClick={handleAttachmentClick}
-                  style={{ background: 'none', border: 'none', color: 'var(--color-text-secondary)', cursor: 'pointer', padding: '8px' }} 
+                  className="messages-chat-input-action-btn"
                   title="Attach File"
                 >
                   <Paperclip size={20} />
@@ -1063,50 +992,29 @@ const Messages = () => {
                     setInputText(e.target.value);
                     sendTypingEvent();
                   }}
-                  style={{
-                    flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                    padding: '10px 0', fontSize: '15px', color: 'var(--color-text-primary)'
-                  }}
+                  className="messages-chat-text-input"
                 />
                 <button 
                   type="button" 
-                  className="emoji-toggle-btn"
+                  className="messages-chat-input-action-btn emoji-toggle-btn"
                   onClick={() => setShowEmojiPicker(prev => !prev)}
-                  style={{ 
-                    background: 'none', border: 'none', cursor: 'pointer', padding: '8px',
-                    color: showEmojiPicker ? 'var(--color-primary)' : 'var(--color-text-secondary)'
-                  }}
+                  style={{ color: showEmojiPicker ? 'var(--color-primary)' : 'inherit' }}
                 >
                   <Smile size={20} />
                 </button>
                 <button 
                   type="submit" 
                   disabled={!inputText.trim()}
+                  className="messages-chat-send-btn"
                   style={{ 
-                    background: inputText.trim() ? 'var(--color-primary)' : 'var(--color-border)', 
-                    color: '#fff', border: 'none', borderRadius: '50%', width: '40px', height: '40px', 
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: inputText.trim() ? 'pointer' : 'default',
-                    transition: 'background 0.2s'
+                    opacity: inputText.trim() ? 1 : 0.6,
+                    cursor: inputText.trim() ? 'pointer' : 'default',
                   }}
                 >
                   <Send size={18} style={{ marginLeft: '2px' }} />
                 </button>
               </form>
-              <div style={{ textAlign: 'center', marginTop: '8px', fontSize: '11px', color: 'var(--color-text-tertiary)' }}>
-                <strong>Enter</strong> to send. Press Shift + Enter to add a new line.
-              </div>
             </div>
-
-            <style>{`
-              @keyframes typing {
-                0%, 80%, 100% { transform: scale(0); }
-                40% { transform: scale(1); }
-              }
-              @keyframes slideIn {
-                from { transform: translateX(100%); }
-                to { transform: translateX(0); }
-              }
-            `}</style>
           </div>
         ) : (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)' }}>
@@ -1119,11 +1027,7 @@ const Messages = () => {
 
         {/* ---- RIGHT SIDE PANEL: Partner Details Drawer ---- */}
         {showDetailsPanel && activeChat && (
-          <div style={{
-            width: '320px', borderLeft: '1px solid var(--color-border)', background: 'var(--color-surface)',
-            display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto', padding: '24px',
-            animation: 'slideIn 0.25s ease-out'
-          }}>
+          <div className="messages-details-drawer">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-text-primary)' }}>User Details</h3>
               <X size={20} style={{ cursor: 'pointer', color: 'var(--color-text-secondary)' }} onClick={() => setShowDetailsPanel(false)} />
@@ -1148,7 +1052,7 @@ const Messages = () => {
                     {partnerDetails.name}
                   </h4>
                   <span style={{ 
-                    fontSize: '12px', fontWeight: '600', textTransform: 'uppercase', tracking: '1px',
+                    fontSize: '12px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px',
                     color: '#6366f1', background: 'rgba(99, 102, 241, 0.1)', padding: '4px 10px', borderRadius: '12px'
                   }}>
                     {partnerDetails.role}
@@ -1188,7 +1092,7 @@ const Messages = () => {
                   style={{
                     marginTop: '20px', width: '100%', padding: '12px', border: '1px solid var(--color-danger)',
                     borderRadius: '8px', background: 'transparent', color: 'var(--color-danger)', fontSize: '14px',
-                    fontWeight: '600', cursor: 'pointer', transition: 'background 0.2s'
+                    fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s'
                   }}
                   onMouseEnter={(e) => { e.target.style.background = 'rgba(239, 68, 68, 0.05)'; }}
                   onMouseLeave={(e) => { e.target.style.background = 'transparent'; }}
@@ -1208,30 +1112,5 @@ const Messages = () => {
     </div>
   );
 };
-
-const menuBtnStyle = {
-  background: 'none',
-  border: 'none',
-  textAlign: 'left',
-  padding: '10px 16px',
-  fontSize: '13px',
-  color: 'var(--color-text-primary)',
-  cursor: 'pointer',
-  width: '100%',
-  transition: 'background 0.15s',
-  outline: 'none'
-};
-
-// Map menu buttons hover in react
-document.addEventListener('mouseover', (e) => {
-  if (e.target && e.target.tagName === 'BUTTON' && e.target.style.textAlign === 'left') {
-    e.target.style.background = 'var(--color-bg-secondary)';
-  }
-});
-document.addEventListener('mouseout', (e) => {
-  if (e.target && e.target.tagName === 'BUTTON' && e.target.style.textAlign === 'left') {
-    e.target.style.background = 'none';
-  }
-});
 
 export default Messages;

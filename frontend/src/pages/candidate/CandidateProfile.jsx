@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   User, Briefcase, GraduationCap, Award, Link as LinkIcon, 
   MapPin, Mail, Phone, Code, Globe, ExternalLink,
-  Edit3, Trash2, Plus, CheckCircle
+  Edit3, Trash2, Plus, CheckCircle, Camera
 } from 'lucide-react';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
 import Input from '../../components/Input';
 import useAuth from '../../hooks/useAuth';
+import api from '../../services/api';
 import './Dashboard.css';
 
 const BLANK_PROFILE = {
@@ -18,6 +19,7 @@ const BLANK_PROFILE = {
     email: '',
     phone: '',
     summary: '',
+    avatar: '',
   },
   skills: {
     core: [],
@@ -56,6 +58,42 @@ const CandidateProfile = () => {
       });
   };
 
+  const avatarInputRef = useRef(null);
+
+  const triggerAvatarUpload = () => {
+    avatarInputRef.current.click();
+  };
+
+  const handleAvatarFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await api.upload('/chat/upload', formData);
+      const fileUrl = response.fileUrl;
+      const updatedProfile = {
+        ...profileData,
+        personal: {
+          ...profileData.personal,
+          avatar: fileUrl
+        }
+      };
+      setProfileData(updatedProfile);
+      localStorage.setItem(userProfileKey, JSON.stringify(updatedProfile));
+      updateUser({ avatar: fileUrl });
+      
+      setToastMessage('Profile picture updated successfully!');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (err) {
+      console.error('Failed to upload avatar', err);
+      alert('Failed to upload profile picture. Please try again.');
+    }
+  };
+
   const [profileData, setProfileData] = useState(() => {
     try {
       const saved = localStorage.getItem(userProfileKey);
@@ -72,7 +110,8 @@ const CandidateProfile = () => {
         email: user?.email || '',
         title: user?.title || 'Software Engineer',
         location: user?.location || 'Remote',
-        summary: ''
+        summary: '',
+        avatar: user?.avatar || ''
       }
     };
   });
@@ -86,7 +125,8 @@ const CandidateProfile = () => {
           name: user.name || prev.personal.name,
           email: user.email || prev.personal.email,
           title: user.title || prev.personal.title,
-          location: user.location || prev.personal.location
+          location: user.location || prev.personal.location,
+          avatar: user.avatar || prev.personal.avatar
         }
       }));
     }
@@ -381,12 +421,30 @@ const CandidateProfile = () => {
   const { personal, skills, experience, education, projects, certifications, links } = profileData;
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-page profile-animate-fade-in">
       {/* Profile Header Banner */}
-      <div className="profile-banner">
+      <div className="profile-banner profile-animate-slide-up">
         <div className="profile-banner-info">
-          <div className="profile-avatar-large">
-            {personal.name ? personal.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'U'}
+          <div className="profile-avatar-large" onClick={triggerAvatarUpload} style={{ cursor: 'pointer' }}>
+            {personal.avatar ? (
+              <img 
+                src={personal.avatar.startsWith('http') ? personal.avatar : `http://localhost:8080${personal.avatar}`} 
+                alt="Avatar" 
+                className="profile-avatar-image" 
+              />
+            ) : (
+              personal.name ? personal.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'U'
+            )}
+            <div className="profile-avatar-hover-overlay">
+              <Camera size={20} />
+            </div>
+            <input 
+              type="file" 
+              ref={avatarInputRef} 
+              onChange={handleAvatarFileChange} 
+              accept="image/*" 
+              style={{ display: 'none' }} 
+            />
           </div>
           <div>
             <h1 className="profile-name">{personal.name || 'Candidate Name'}</h1>
@@ -406,10 +464,10 @@ const CandidateProfile = () => {
 
       <div className="dashboard-grid-3">
         {/* Left Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+        <div className="profile-animate-slide-up profile-delay-1" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
           
           {/* About */}
-          <div className="section-card">
+          <div className="section-card profile-page-grid-card">
             <div className="section-card-header">
               <h2 className="section-card-title"><User size={18} /> About</h2>
               <Button size="sm" variant="ghost" onClick={handleEditPersonal}>Edit About</Button>
@@ -428,7 +486,7 @@ const CandidateProfile = () => {
           </div>
 
           {/* Experience */}
-          <div className="section-card">
+          <div className="section-card profile-page-grid-card">
             <div className="section-card-header">
               <h2 className="section-card-title"><Briefcase size={18} /> Experience</h2>
               <Button size="sm" variant="ghost" onClick={handleAddExp} leftIcon={<Plus size={14} />}>Add</Button>
@@ -462,7 +520,7 @@ const CandidateProfile = () => {
           </div>
 
           {/* Projects */}
-          <div className="section-card">
+          <div className="section-card profile-page-grid-card">
             <div className="section-card-header">
               <h2 className="section-card-title"><Code size={18} /> Featured Projects</h2>
               <Button size="sm" variant="ghost" onClick={handleAddProj} leftIcon={<Plus size={14} />}>Add</Button>
@@ -499,10 +557,10 @@ const CandidateProfile = () => {
         </div>
 
         {/* Right Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+        <div className="profile-animate-slide-up profile-delay-2" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
           
           {/* Skills */}
-          <div className="section-card">
+          <div className="section-card profile-page-grid-card">
             <div className="section-card-header">
               <h2 className="section-card-title"><Award size={18} /> Skills</h2>
               <Button size="sm" variant="ghost" onClick={handleEditSkills}>Edit</Button>
@@ -546,7 +604,7 @@ const CandidateProfile = () => {
           </div>
 
           {/* Education */}
-          <div className="section-card">
+          <div className="section-card profile-page-grid-card">
             <div className="section-card-header">
               <h2 className="section-card-title"><GraduationCap size={18} /> Education</h2>
               <Button size="sm" variant="ghost" onClick={handleAddEdu} leftIcon={<Plus size={14} />}>Add</Button>
@@ -577,7 +635,7 @@ const CandidateProfile = () => {
           </div>
 
           {/* Certifications & Achievements */}
-          <div className="section-card">
+          <div className="section-card profile-page-grid-card">
             <div className="section-card-header">
               <h2 className="section-card-title"><Award size={18} /> Certifications</h2>
               <Button size="sm" variant="ghost" onClick={handleAddCert} leftIcon={<Plus size={14} />}>Add</Button>
@@ -607,7 +665,7 @@ const CandidateProfile = () => {
           </div>
 
           {/* Portfolio Links */}
-          <div className="section-card">
+          <div className="section-card profile-page-grid-card">
             <div className="section-card-header">
               <h2 className="section-card-title"><LinkIcon size={18} /> Portfolio Links</h2>
               <Button size="sm" variant="ghost" onClick={handleEditLinks}>Edit</Button>

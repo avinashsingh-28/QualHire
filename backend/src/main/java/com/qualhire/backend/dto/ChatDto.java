@@ -10,11 +10,16 @@ public class ChatDto {
         private String name;
         private String company;
         private String avatar;
+        @com.fasterxml.jackson.annotation.JsonProperty("isOnline")
         private boolean isOnline;
         private long unread;
         private String roleContext;
+        @com.fasterxml.jackson.annotation.JsonProperty("isMuted")
         private boolean isMuted;
+        @com.fasterxml.jackson.annotation.JsonProperty("isArchived")
         private boolean isArchived;
+        @com.fasterxml.jackson.annotation.JsonProperty("isBlocked")
+        private boolean isBlocked;
         private MessageDto lastMessage;
 
         public ConversationDto() {}
@@ -48,6 +53,9 @@ public class ChatDto {
 
         public boolean isArchived() { return isArchived; }
         public void setArchived(boolean archived) { isArchived = archived; }
+
+        public boolean isBlocked() { return isBlocked; }
+        public void setBlocked(boolean blocked) { isBlocked = blocked; }
 
         public MessageDto getLastMessage() { return lastMessage; }
         public void setLastMessage(MessageDto lastMessage) { this.lastMessage = lastMessage; }

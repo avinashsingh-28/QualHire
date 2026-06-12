@@ -26,6 +26,13 @@ import CodingAssessment     from './pages/candidate/CodingAssessment';
 import ResumeAnalysis       from './pages/candidate/ResumeAnalysis';
 import Notifications        from './pages/Notifications';
 
+// Video Interview System Pages
+import RecruiterInterviews from './pages/recruiter/RecruiterInterviews';
+import CandidateInterviews from './pages/candidate/CandidateInterviews';
+import InterviewSetup      from './pages/candidate/InterviewSetup';
+import InterviewRoom       from './pages/candidate/InterviewRoom';
+import InterviewExit       from './pages/candidate/InterviewExit';
+
 // Auth guard
 import useAuth from './hooks/useAuth';
 
@@ -82,6 +89,7 @@ const App = () => (
       <Route path="assessments"  element={<CandidateAssessments />} />
       <Route path="assessments/coding/:id" element={<CodingAssessment />} />
       <Route path="messages"     element={<Messages />} />
+      <Route path="interviews"   element={<CandidateInterviews />} />
       <Route path="mentorship"   element={<ComingSoon icon={<BookOpen size={32} />}  title="Mentorship"        description="Find and connect with industry mentors."                                backPath="/candidate" backLabel="Back to Dashboard" />} />
       <Route path="notifications" element={<Notifications />} />
       <Route path="settings"     element={<ComingSoon icon={<Settings size={32} />}  title="Settings"          description="Manage your account and notification preferences."                      backPath="/candidate" backLabel="Back to Dashboard" />} />
@@ -99,7 +107,7 @@ const App = () => (
       <Route index element={<RecruiterDashboard />} />
       <Route path="jobs"        element={<RecruiterJobs />} />
       <Route path="applicants"  element={<RecruiterApplicants />} />
-      <Route path="interviews"  element={<ComingSoon icon={<Calendar size={32} />}   title="Interviews"        description="Schedule and manage candidate interviews."                              backPath="/recruiter" backLabel="Back to Dashboard" />} />
+      <Route path="interviews"  element={<RecruiterInterviews />} />
       <Route path="assessments" element={<ComingSoon icon={<ClipboardList size={32} />} title="Assessments"     description="Manage technical assessments and reviews."                              backPath="/recruiter" backLabel="Back to Dashboard" />} />
       <Route path="messages"    element={<Messages />} />
       <Route path="analytics"   element={<ComingSoon icon={<BarChart3 size={32} />}   title="Analytics"         description="Deep dive into hiring metrics and funnel."                              backPath="/recruiter" backLabel="Back to Dashboard" />} />
@@ -141,6 +149,11 @@ const App = () => (
       <Route path="moderation" element={<ComingSoon icon={<Shield size={32} />}      title="Moderation"        description="Handle reports, flags, and community standards."                       backPath="/admin" backLabel="Back to Dashboard" />} />
       <Route path="settings"   element={<ComingSoon icon={<Settings size={32} />}    title="Admin Settings"    description="Configure platform-wide settings."                                    backPath="/admin" backLabel="Back to Dashboard" />} />
     </Route>
+
+    {/* ---- Video Interview Room Standalone Routes ---- */}
+    <Route path="interview/setup/:roomCode" element={<InterviewSetup />} />
+    <Route path="interview/room/:roomCode"  element={<InterviewRoom />} />
+    <Route path="interview/exit"            element={<InterviewExit />} />
 
     {/* ---- Fallback ---- */}
     <Route path="*" element={<Navigate to="/" replace />} />

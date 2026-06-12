@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, Search, Filter, Calendar, Mail, Phone, MapPin, 
   Briefcase, CheckCircle, XCircle, Clock, ChevronRight, FileText, 
@@ -8,6 +8,7 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import Modal from '../../components/Modal';
 import useAuth from '../../hooks/useAuth';
+import { useSearchParams } from 'react-router-dom';
 import '../candidate/Dashboard.css';
 
 // ---- Mock Data ----
@@ -135,7 +136,13 @@ const getScoreColor = (score) => {
 const RecruiterApplicants = () => {
   const { user } = useAuth();
   const [applicants, setApplicants] = useState(INITIAL_APPLICANTS);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const globalSearchQuery = searchParams.get('search') || '';
+  const [searchQuery, setSearchQuery] = useState(globalSearchQuery);
+
+  useEffect(() => {
+    setSearchQuery(globalSearchQuery);
+  }, [globalSearchQuery]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedApplicant, setSelectedApplicant] = useState(applicants[0]);
   const [activeTab, setActiveTab] = useState('profile'); // 'profile' or 'notes'

@@ -37,6 +37,10 @@ const SearchBar = ({
     onSearch?.('');
   }, [onSearch]);
 
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue]);
+
   useEffect(() => () => {
     if (timerRef.current) clearTimeout(timerRef.current);
   }, []);

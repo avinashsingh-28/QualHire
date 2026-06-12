@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   FileText, Calendar, Search, BookOpen,
   Briefcase, Star, ArrowRight, CheckCircle,
@@ -75,6 +75,8 @@ const customTooltipStyle = {
 };
 
 const CandidateDashboard = () => {
+  const [searchParams] = useSearchParams();
+  const searchVal = searchParams.get('search') || '';
   const { user } = useAuth();
   const navigate = useNavigate();
   const firstName = user?.name?.split(' ')[0] || 'there';
@@ -240,21 +242,35 @@ const CandidateDashboard = () => {
               </Button>
             </div>
             <div className="section-card-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-              {RECOMMENDED_JOBS.map(job => (
-                <div key={job.id} className="job-card">
-                  <div className="job-company-logo">{job.logo}</div>
-                  <div className="job-info">
-                    <p className="job-title">{job.title}</p>
-                    <p className="job-company">{job.company} · {job.location}</p>
-                    <div className="job-tags">
-                      <span className="job-tag">{job.salary}</span>
-                      <span className="job-tag">{job.type}</span>
-                      <span className="job-tag match-badge">{job.match}% ATS Match</span>
+              {(() => {
+                const filtered = RECOMMENDED_JOBS.filter(job => 
+                  job.title.toLowerCase().includes(searchVal.toLowerCase()) ||
+                  job.company.toLowerCase().includes(searchVal.toLowerCase()) ||
+                  job.location.toLowerCase().includes(searchVal.toLowerCase())
+                );
+                if (filtered.length === 0) {
+                  return (
+                    <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+                      No premium job matches found for "{searchVal}".
                     </div>
+                  );
+                }
+                return filtered.map(job => (
+                  <div key={job.id} className="job-card">
+                    <div className="job-company-logo">{job.logo}</div>
+                    <div className="job-info">
+                      <p className="job-title">{job.title}</p>
+                      <p className="job-company">{job.company} · {job.location}</p>
+                      <div className="job-tags">
+                        <span className="job-tag">{job.salary}</span>
+                        <span className="job-tag">{job.type}</span>
+                        <span className="job-tag match-badge">{job.match}% ATS Match</span>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>Apply Now</Button>
                   </div>
-                  <Button variant="outline" size="sm" style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>Apply Now</Button>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           </div>
         </div>
